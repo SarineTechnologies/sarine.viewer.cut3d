@@ -1,7 +1,7 @@
 {
-  "name": "sarine.viewer.svg",
+  "name": "sarine.viewer.threejs",
   "version": "0.1.1",
-  "main": "dist/sarine.viewer.svg.js",
+  "main": "dist/sarine.viewer.threejs.js",
   "ignore": [
     ".git",
     "node_modules",
