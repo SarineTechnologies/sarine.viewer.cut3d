@@ -1,70 +1,346 @@
 
 /*!
-sarine.viewer.svg - v0.1.1 -  Monday, May 4th, 2015, 4:53:22 PM 
+sarine.viewer.threejs - v0.0.0 -  Thursday, May 7th, 2015, 1:56:57 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
 (function() {
-  var SarineSvg,
+  var Threejs,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  SarineSvg = (function(_super) {
-    __extends(SarineSvg, _super);
+  Threejs = (function(_super) {
+    var addMouseHandler, camera, cameraInfo, canvasWidht, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, url;
 
-    function SarineSvg(options) {
-      SarineSvg.__super__.constructor.call(this, options);
-      this.imagesArr = options.imagesArr, this.jsonFileName = options.jsonFileName, this.svg = options.svg;
+    __extends(Threejs, _super);
+
+    scene = void 0;
+
+    sceneInfo = void 0;
+
+    renderer = void 0;
+
+    controls = void 0;
+
+    mesh = void 0;
+
+    Threejs.material = void 0;
+
+    camera = void 0;
+
+    cameraInfo = void 0;
+
+    scale = void 0;
+
+    url = void 0;
+
+    info = void 0;
+
+    canvasWidht = void 0;
+
+    fontSize = void 0;
+
+    color = void 0;
+
+    font = void 0;
+
+    mouseDown = false;
+
+    mouseX = false;
+
+    mouseY = false;
+
+    infoOnly = false;
+
+    function Threejs(options) {
+      Threejs.__super__.constructor.call(this, options);
+      color = options.color, font = options.font, infoOnly = options.infoOnly;
+      color = color || 0xffffff;
+      scale = 1;
       this.version = $(this.element).data("version") || "v1";
       this.viewersBaseUrl = stones[0].viewersBaseUrl;
     }
 
-    SarineSvg.prototype.convertElement = function() {
+    Threejs.prototype.convertElement = function() {
+      this.element.css({
+        width: '100%',
+        height: '100%'
+      });
       return this.element;
     };
 
-    SarineSvg.prototype.first_init = function() {
+    Threejs.prototype.first_init = function() {
       var defer, _t;
       _t = this;
       defer = $.Deferred();
-      $.getJSON(this.src + this.jsonFileName, function(data) {
-        _t.data = data;
-        $(_t.element).load(_t.viewersBaseUrl + "atomic/" + _t.version + "/assets/" + _t.svg, function(data) {
-          _t.element.find("#SVG_width_mm").text(parseFloat(_t.data.Width.mm).toFixed(2) + "mm");
-          _t.element.find("#SVG_table_pre").text(parseFloat(_t.data["Table Size"].percentages) + "%");
-          _t.element.find("#SVG_crown_pre").text(parseFloat(_t.data["Crown"]["height-percentages"]).toFixed(1) + "%");
-          _t.element.find("#SVG_crown_mm").text(parseFloat(_t.data["Crown"]["height-mm"]).toFixed(2) + "mm");
-          _t.element.find("#SVG_pavillion_pre").text(parseFloat(_t.data["Pavilion"]["height-percentages"]).toFixed(1) + "%");
-          _t.element.find("#SVG_pavillion_mm").text(parseFloat(_t.data["Pavilion"]["height-mm"]).toFixed(2) + "mm");
-          _t.element.find("#SVG_girdle_pre").text(parseFloat(_t.data["Girdle"]["Thickness-percentages"]).toFixed(1) + "%");
-          _t.element.find("#SVG_girdle_mm").text(parseFloat(_t.data["Girdle"]["Thickness-mm"]).toFixed(2) + "mm");
-          _t.element.find("#SVG_culet_mm").text(parseFloat(_t.data["Culet Size"].percentages) + "%");
-          _t.element.find("#SVG_crown_rounded").text(parseFloat(_t.data["Crown"]["angel-deg"]).toFixed(1) + "°");
-          _t.element.find("#SVG_pavillion_rounded").text(parseFloat(_t.data["Pavilion"]["angel-deg"]).toFixed(1) + "°");
-          _t.element.find("#SVG_total_depth_per").text(parseFloat(_t.data["Total Depth"]["mm"]).toFixed(2) + "mm");
-          _t.element.find("#SVG_total_depth_mm").text(parseFloat(_t.data["Total Depth"]["percentages"]) + "%");
-          return defer.resolve(_t).fail(function() {});
+      loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
+        createScene.apply(_t);
+        return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "info.json")).then(function(data, json) {
+          var rawData;
+          info = json[0];
+          rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
+            return s.length > 0;
+          });
+          drawMesh.apply(_t, [
+            {
+              vertices: rawData.slice(1, +parseInt(rawData[0]) + 1 || 9e9).map(function(str) {
+                return str.replace(',', '').split(';').slice(0, 3);
+              }),
+              polygons: rawData.slice(parseInt(rawData[0]) + 2, +rawData.length + 1 || 9e9).map(function(str) {
+                return str.replace(/(\d+;)/, '').replace(/(;;|;,)/, "").split(",");
+              })
+            }
+          ]);
+          drawInfo.apply(_t);
+          if (!infoOnly) {
+            addMouseHandler.apply(_t);
+          }
+          return defer.resolve(_t);
         });
-        return defer.resolve(_t);
       });
       return defer;
     };
 
-    SarineSvg.prototype.full_init = function() {
+    Threejs.prototype.full_init = function() {
       var defer;
       defer = $.Deferred();
       defer.resolve(this);
       return defer;
     };
 
-    SarineSvg.prototype.play = function() {};
+    Threejs.prototype.play = function() {};
 
-    SarineSvg.prototype.stop = function() {};
+    Threejs.prototype.stop = function() {};
 
-    return SarineSvg;
+    loadScript = function(url) {
+      var defer, s, _t;
+      defer = $.Deferred();
+      _t = this;
+      s = $("<script>", {
+        type: "text/javascript"
+      }).appendTo("body").end()[0];
+      s.onload = function() {
+        return defer.resolve(_t);
+      };
+      s.src = url;
+      return defer;
+    };
+
+    rotateScene = function(deltaX, deltaY) {
+      mesh.rotation.x += deltaY / 100;
+      return mesh.rotation.z -= deltaX / 100;
+    };
+
+    addMouseHandler = function() {
+      var canvas, onMouseMove;
+      canvas = renderer.domElement;
+      onMouseMove = function(evt) {
+        var deltaX, deltaY;
+        if (!mouseDown) {
+          return;
+        }
+        evt.preventDefault();
+        deltaX = evt.clientX - mouseX;
+        deltaY = evt.clientY - mouseY;
+        mouseX = evt.clientX;
+        mouseY = evt.clientY;
+        return rotateScene(deltaX, deltaY);
+      };
+      renderer.domElement.addEventListener('mousemove', (function(e) {
+        return onMouseMove(e);
+      }), false);
+      renderer.domElement.addEventListener('mousedown', (function(evt) {
+        evt.preventDefault();
+        mouseDown = true;
+        mouseX = evt.clientX;
+        return mouseY = evt.clientY;
+      }), false);
+      return renderer.domElement.addEventListener('mouseup', (function(evt) {
+        evt.preventDefault();
+        return mouseDown = false;
+      }), false);
+    };
+
+    render = function() {
+      requestAnimationFrame(render);
+      renderer.clear();
+      renderer.render(scene, camera);
+      if (mesh && mesh.rotation && parseInt(mesh.rotation.x * 10) === parseInt(Math.PI * 5)) {
+        return renderer.render(sceneInfo, cameraInfo);
+      }
+    };
+
+    drawMesh = function(data) {
+      var geom, meshWF, setFaces, vert, _i, _j, _len, _len1, _ref, _ref1;
+      setFaces = function(points, geometry) {
+        geometry.faces.push(new THREE.Face3(points[0], points[1], points[2]));
+        if (points.length !== 3) {
+          points.splice(1, 1);
+          setFaces(points, geometry);
+        }
+        return geometry.computeFaceNormals();
+      };
+      geom = new THREE.Geometry();
+      _ref = data.vertices;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        vert = _ref[_i];
+        geom.vertices.push(new THREE.Vector3(vert[0] * scale, vert[1] * scale, vert[2] * scale));
+      }
+      _ref1 = data.polygons;
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        vert = _ref1[_j];
+        setFaces(vert, geom);
+      }
+      mesh = new THREE.Mesh(geom, this.material);
+      mesh.material.opacity = 1;
+      mesh.material.transparent = false;
+      meshWF = new THREE.Mesh(geom.clone(), this.material.clone());
+      meshWF.scale.set(0.99 * scale, 0.99 * scale, 0.99 * scale);
+      meshWF.material.opacity = 1;
+      mesh.geometry.center();
+      meshWF.geometry.center();
+      this.edges = new THREE.EdgesHelper(mesh, 0x000000);
+      scene.add(rotation(mesh));
+      scene.add(rotation(this.edges));
+      return mesh;
+    };
+
+    rotation = function(obj) {
+      obj.rotation.x = Math.PI / 2;
+      return obj;
+    };
+
+    createScene = function() {
+      scene = new THREE.Scene();
+      sceneInfo = new THREE.Scene();
+      camera = new THREE.OrthographicCamera(12500 / -2.5, 12500 / 2.5, 12500 / 2.5, 12500 / -2.5, -10000, 10000);
+      scene.add(camera);
+      camera.position.set(0, 0, 5000);
+      camera.lookAt(scene.position);
+      renderer = new THREE.CanvasRenderer({
+        alpha: true
+      });
+      renderer.autoClear = false;
+      canvasWidht = this.element.height() > this.element.width() ? this.element.width() : this.element.height();
+      cameraInfo = new THREE.OrthographicCamera(canvasWidht / -2, canvasWidht / 2, canvasWidht / 2, canvasWidht / -2, -10000, 10000);
+      sceneInfo.add(cameraInfo);
+      renderer.setSize(canvasWidht, canvasWidht);
+      this.element[0].appendChild(renderer.domElement);
+      this.material = new THREE.MeshBasicMaterial({
+        color: 0xcccccc,
+        side: THREE.DoubleSide
+      });
+      return render();
+    };
+
+    drawArrow = function(options) {
+      var data, dir, far, gap, hex, infoObj, length, name, origin, textObj, topToButtom, xy, xyFar;
+      name = options.name, origin = options.origin, length = options.length, hex = options.hex, topToButtom = options.topToButtom, data = options.data, dir = options.dir, far = options.far;
+      xyFar = topToButtom ? 'x' : 'y';
+      origin["set" + xyFar.toUpperCase()](origin[xyFar] * far);
+      origin.set(origin.x / (camera.right / cameraInfo.right), origin.y / (camera.right / cameraInfo.right), origin.z / (camera.right / cameraInfo.right));
+      textObj = drawText({
+        text: data.toFixed(2) + " mm",
+        position: origin
+      });
+      infoObj = new THREE.Object3D();
+      infoObj.name = "info";
+      xy = topToButtom ? 'y' : 'x';
+      gap = (textObj.geometry.boundingBox.max[xy] - textObj.geometry.boundingBox.min[xy]) + 10;
+      length = data / 2 * 1000 / (camera.right / cameraInfo.right) - gap / 2;
+      infoObj.add(textObj);
+      infoObj.add(new THREE.ArrowHelper(dir, origin.clone()["set" + xy.toUpperCase()](origin[xy] + gap / 2), length, hex, 5, 5));
+      if (topToButtom) {
+        dir.setY(dir.y * -1);
+      } else {
+        dir.setX(dir.x * -1);
+      }
+      infoObj.add(new THREE.ArrowHelper(dir, origin.clone()["set" + xy.toUpperCase()](origin[xy] - gap / 2), length, hex, 5, 5));
+      return infoObj;
+    };
+
+    drawText = function(options) {
+      var hex, material, position, text, textGeom, textMesh;
+      text = options.text, position = options.position, hex = options.hex;
+      material = new THREE.MeshBasicMaterial({
+        color: options.hex || 0x000000
+      });
+      textGeom = new THREE.TextGeometry(options.text, {
+        size: 15,
+        font: "gentilis",
+        wieght: "bold"
+      });
+      textGeom.center();
+      textMesh = new THREE.Mesh(textGeom, material);
+      textMesh.lookAt(camera.position);
+      textMesh.position.set(position.x, position.y, position.z);
+      return textMesh;
+    };
+
+    drawInfo = function(hex) {
+      var infoObj, val;
+      hex = hex || 0x000000;
+      infoObj = new THREE.Object3D();
+      infoObj.name = "info";
+      infoObj.add(drawArrow({
+        origin: new THREE.Vector3(0, mesh.geometry.boundingBox.max.z, 0),
+        hex: hex,
+        topToButtom: false,
+        data: info['Length']['mm'],
+        dir: new THREE.Vector3(1, 0, 0),
+        far: 1.50
+      }));
+      infoObj.add(drawArrow({
+        origin: new THREE.Vector3(0, mesh.geometry.boundingBox.max.z, 0),
+        hex: hex,
+        topToButtom: false,
+        data: info['Table Size']['mm'],
+        dir: new THREE.Vector3(1, 0, 0),
+        far: 1.25
+      }));
+      infoObj.add(drawArrow({
+        origin: new THREE.Vector3(0, mesh.geometry.boundingBox.max.z, 0),
+        hex: hex,
+        topToButtom: false,
+        data: info['Table Size']['mm'],
+        dir: new THREE.Vector3(1, 0, 0),
+        far: 1.25
+      }));
+      val = mesh.geometry.boundingBox.max.z - info['Crown']['height-mm'] * 1000 / 2;
+      infoObj.add(drawArrow({
+        origin: new THREE.Vector3(mesh.geometry.boundingBox.max.x, val, 0),
+        hex: hex,
+        topToButtom: true,
+        data: info['Crown']['height-mm'],
+        dir: new THREE.Vector3(mesh.geometry.boundingBox.max.x, val + 1, 0),
+        far: 1.25
+      }));
+      val = mesh.geometry.boundingBox.min.z + info['Pavilion']['height-mm'] * 1000 / 2;
+      infoObj.add(drawArrow({
+        origin: new THREE.Vector3(mesh.geometry.boundingBox.max.x, val, 0),
+        hex: hex,
+        topToButtom: true,
+        data: info['Pavilion']['height-mm'],
+        dir: new THREE.Vector3(mesh.geometry.boundingBox.max.x, val * -1, 0),
+        far: 1.25
+      }));
+      val = mesh.geometry.boundingBox.min.z + info['Total Depth']['mm'] * 1000 / 2;
+      infoObj.add(drawArrow({
+        origin: new THREE.Vector3(mesh.geometry.boundingBox.min.x, val, 0),
+        hex: hex,
+        topToButtom: true,
+        data: info['Total Depth']['mm'],
+        dir: new THREE.Vector3(mesh.geometry.boundingBox.min.x, val + 1, 0),
+        far: 1.25
+      }));
+      sceneInfo.add(infoObj);
+      return void 0;
+    };
+
+    return Threejs;
 
   })(Viewer);
 
-  this.SarineSvg = SarineSvg;
+  this.Threejs = Threejs;
 
 }).call(this);
