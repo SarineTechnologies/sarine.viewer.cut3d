@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM 
+sarine.viewer.threejs - v0.2.0 -  Monday, May 11th, 2015, 9:39:51 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -52,6 +52,8 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
 
     infoOnly = false;
 
+    info = false;
+
     function Threejs(options) {
       Threejs.__super__.constructor.call(this, options);
       color = options.color, font = options.font, infoOnly = options.infoOnly;
@@ -64,7 +66,9 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
     Threejs.prototype.convertElement = function() {
       this.element.css({
         width: '100%',
-        height: '100%'
+        height: '100%',
+        "min-width": 200,
+        "min-height": 200
       });
       return this.element;
     };
@@ -91,7 +95,7 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
               })
             }
           ]);
-          drawInfo.apply(_t);
+          info = drawInfo.apply(_t);
           if (!infoOnly) {
             addMouseHandler.apply(_t);
           }
@@ -114,8 +118,14 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
 
     loadScript = function(url) {
       var defer, s, _t;
-      defer = $.Deferred();
       _t = this;
+      defer = $.Deferred();
+      if (($("[src='" + url + "']")[0])) {
+        $("[src='" + url + "']").on("load", function() {
+          return defer.resolve(_t);
+        });
+        return defer;
+      }
       s = $("<script>", {
         type: "text/javascript"
       }).appendTo("body").end()[0];
@@ -132,7 +142,7 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
     };
 
     addMouseHandler = function() {
-      var canvas, onMouseMove;
+      var canvas, onDocumentTouchMove, onDocumentTouchStart, onMouseMove, onMousedown, onMouseup;
       canvas = renderer.domElement;
       onMouseMove = function(evt) {
         var deltaX, deltaY;
@@ -146,23 +156,50 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
         mouseY = evt.clientY;
         return rotateScene(deltaX, deltaY);
       };
-      renderer.domElement.addEventListener('mousemove', (function(e) {
-        return onMouseMove(e);
-      }), false);
-      renderer.domElement.addEventListener('mousedown', (function(evt) {
+      onMousedown = function(evt) {
         evt.preventDefault();
         mouseDown = true;
         mouseX = evt.clientX;
         return mouseY = evt.clientY;
-      }), false);
-      return renderer.domElement.addEventListener('mouseup', (function(evt) {
+      };
+      onMouseup = function(evt) {
         evt.preventDefault();
         return mouseDown = false;
-      }), false);
+      };
+      onDocumentTouchStart = (function(_this) {
+        return function(event) {
+          if (event.touches.length === 1) {
+            event.preventDefault();
+            mouseX = event.touches[0].pageX;
+            return mouseY = event.touches[0].pageY;
+          }
+        };
+      })(this);
+      onDocumentTouchMove = (function(_this) {
+        return function(event) {
+          var deltaX, deltaY;
+          if (event.touches.length === 1) {
+            event.preventDefault();
+            deltaX = event.touches[0].pageX - mouseX;
+            deltaY = event.touches[0].pageY - mouseY;
+            mouseX = event.touches[0].pageX;
+            mouseY = event.touches[0].pageY;
+            return rotateScene(deltaX, deltaY);
+          }
+        };
+      })(this);
+      renderer.domElement.addEventListener("touchstart", onDocumentTouchStart, false);
+      document.getElementsByTagName("body")[0].addEventListener("touchend", onMouseup, false);
+      document.getElementsByTagName("body")[0].addEventListener("touchmove", onDocumentTouchMove, false);
+      document.getElementsByTagName("body")[0].addEventListener('mousemove', onMouseMove, false);
+      renderer.domElement.addEventListener('mousedown', onMousedown, false);
+      return document.getElementsByTagName("body")[0].addEventListener('mouseup', onMouseup, false);
     };
 
     render = function() {
-      requestAnimationFrame(render);
+      if (!infoOnly) {
+        requestAnimationFrame(render);
+      }
       renderer.clear();
       renderer.render(scene, camera);
       if (mesh && mesh.rotation && parseInt(mesh.rotation.x * 10) === parseInt(Math.PI * 5)) {
@@ -213,7 +250,7 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
     createScene = function() {
       scene = new THREE.Scene();
       sceneInfo = new THREE.Scene();
-      camera = new THREE.OrthographicCamera(12500 / -2.5, 12500 / 2.5, 12500 / 2.5, 12500 / -2.5, -10000, 10000);
+      camera = new THREE.OrthographicCamera(12000 / -2.5, 12000 / 2.5, 12000 / 2.5, 12000 / -2.5, -10000, 10000);
       scene.add(camera);
       camera.position.set(0, 0, 5000);
       camera.lookAt(scene.position);
@@ -298,14 +335,6 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
         dir: new THREE.Vector3(1, 0, 0),
         far: 1.25
       }));
-      infoObj.add(drawArrow({
-        origin: new THREE.Vector3(0, mesh.geometry.boundingBox.max.z, 0),
-        hex: hex,
-        topToButtom: false,
-        data: info['Table Size']['mm'],
-        dir: new THREE.Vector3(1, 0, 0),
-        far: 1.25
-      }));
       val = mesh.geometry.boundingBox.max.z - info['Crown']['height-mm'] * 1000 / 2;
       infoObj.add(drawArrow({
         origin: new THREE.Vector3(mesh.geometry.boundingBox.max.x, val, 0),
@@ -313,7 +342,7 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
         topToButtom: true,
         data: info['Crown']['height-mm'],
         dir: new THREE.Vector3(mesh.geometry.boundingBox.max.x, val + 1, 0),
-        far: 1.25
+        far: 1.15
       }));
       val = mesh.geometry.boundingBox.min.z + info['Pavilion']['height-mm'] * 1000 / 2;
       infoObj.add(drawArrow({
@@ -322,7 +351,7 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
         topToButtom: true,
         data: info['Pavilion']['height-mm'],
         dir: new THREE.Vector3(mesh.geometry.boundingBox.max.x, val * -1, 0),
-        far: 1.25
+        far: 1.15
       }));
       val = mesh.geometry.boundingBox.min.z + info['Total Depth']['mm'] * 1000 / 2;
       infoObj.add(drawArrow({
@@ -331,9 +360,10 @@ sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:13 PM
         topToButtom: true,
         data: info['Total Depth']['mm'],
         dir: new THREE.Vector3(mesh.geometry.boundingBox.min.x, val + 1, 0),
-        far: 1.25
+        far: 1.15
       }));
       sceneInfo.add(infoObj);
+      render();
       return void 0;
     };
 

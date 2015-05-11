@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.2.0 -  Thursday, May 7th, 2015, 3:43:12 PM 
+sarine.viewer.threejs - v0.2.0 -  Monday, May 11th, 2015, 9:39:51 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -54,6 +54,7 @@ class Threejs extends Viewer
 	mouseX = false;
 	mouseY = false;
 	infoOnly = false;
+	info = false;
 	
 	constructor: (options) -> 
 		super(options)
@@ -66,6 +67,8 @@ class Threejs extends Viewer
 		@element.css {
 			width : '100%'
 			height:'100%'
+			"min-width" : 200
+			"min-height" : 200
 			} 
 		@element
 	first_init : ()->
@@ -88,7 +91,7 @@ class Threejs extends Viewer
 						polygons :rawData[parseInt(rawData[0]) + 2 .. rawData.length]
 							.map((str)-> str.replace(/(\d+;)/, '').replace(/(;;|;,)/,"").split(","))
 							}]);
-					drawInfo.apply(_t);
+					info = drawInfo.apply(_t);
 					if(!infoOnly)
 						addMouseHandler.apply(_t);
 					defer.resolve(_t) 
@@ -102,8 +105,11 @@ class Threejs extends Viewer
 	play : () -> return		
 	stop : () -> return		
 	loadScript = (url)->
-		defer = $.Deferred()
 		_t = @
+		defer = $.Deferred()
+		if($("[src='" + url + "']")[0])
+			$("[src='" + url + "']").on("load",()-> defer.resolve(_t))
+			return defer;
 		s = $("<script>", {
 			type: "text/javascript"
 		}).appendTo("body").end()[0];
@@ -124,20 +130,40 @@ class Threejs extends Viewer
 			mouseX = evt.clientX;
 			mouseY = evt.clientY;
 			rotateScene(deltaX, deltaY);
-		
-		renderer.domElement.addEventListener 'mousemove', ((e)-> onMouseMove(e)), false
-		renderer.domElement.addEventListener('mousedown',((evt)->
+
+		onMousedown = (evt)->
 			evt.preventDefault();
 			mouseDown = true;
 			mouseX = evt.clientX;
 			mouseY = evt.clientY;
-			), false)
-		renderer.domElement.addEventListener('mouseup',((evt)-> 
+		onMouseup = (evt)-> 
 			evt.preventDefault();
 			mouseDown = false;
-			), false)
+
+		onDocumentTouchStart = ( event ) =>
+			if (event.touches.length == 1) 
+				event.preventDefault();
+				mouseX = event.touches[0].pageX;
+				mouseY = event.touches[0].pageY;
+
+		onDocumentTouchMove = ( event ) =>
+			if (event.touches.length == 1) 
+				event.preventDefault();
+				deltaX = event.touches[0].pageX - mouseX;
+				deltaY = event.touches[0].pageY - mouseY;
+				mouseX = event.touches[0].pageX;
+				mouseY = event.touches[0].pageY;
+				rotateScene(deltaX, deltaY);
+				 
+		renderer.domElement.addEventListener("touchstart", onDocumentTouchStart , false);
+		document.getElementsByTagName("body")[0].addEventListener("touchend", onMouseup , false);
+		document.getElementsByTagName("body")[0].addEventListener("touchmove", onDocumentTouchMove , false);
+		document.getElementsByTagName("body")[0].addEventListener('mousemove', onMouseMove , false)
+		renderer.domElement.addEventListener('mousedown', onMousedown , false)
+		document.getElementsByTagName("body")[0].addEventListener('mouseup', onMouseup , false)
 	render = () ->
-		requestAnimationFrame(render);
+		if(!infoOnly)
+			requestAnimationFrame(render);
 		renderer.clear();
 		# controls.update();
 		renderer.render(scene, camera);
@@ -172,11 +198,10 @@ class Threejs extends Viewer
 	rotation = (obj) ->
 		obj.rotation.x = Math.PI / 2
 		obj
-
 	createScene = ()->
 		scene = new THREE.Scene() ;
 		sceneInfo = new THREE.Scene() ;
-		camera = new THREE.OrthographicCamera(12500 / -2.5, 12500 / 2.5, 12500  / 2.5, 12500  / - 2.5, - 10000, 10000) ;
+		camera = new THREE.OrthographicCamera(12000 / -2.5, 12000 / 2.5, 12000  / 2.5, 12000  / - 2.5, - 10000, 10000) ;
 		scene.add(camera) ;
 		camera.position.set(0, 0, 5000) ;
 		camera.lookAt(scene.position) ;
@@ -253,14 +278,6 @@ class Threejs extends Viewer
 				dir :  new THREE.Vector3( 1, 0, 0 )
 				far :  1.25
 			}));
-		infoObj.add(drawArrow({
-				origin  : new THREE.Vector3( 0, mesh.geometry.boundingBox.max.z, 0 ),
-				hex : hex, 
-				topToButtom : false,
-				data : info['Table Size']['mm']
-				dir :  new THREE.Vector3( 1, 0, 0 )
-				far : 1.25
-			}))
 		val =  mesh.geometry.boundingBox.max.z - info['Crown']['height-mm'] * 1000 / 2;
 		infoObj.add(drawArrow({
 				origin  : new THREE.Vector3( mesh.geometry.boundingBox.max.x ,val  , 0 )
@@ -268,7 +285,7 @@ class Threejs extends Viewer
 				topToButtom : true,
 				data : info['Crown']['height-mm']
 				dir :  new THREE.Vector3( mesh.geometry.boundingBox.max.x , val +  1 , 0 )
-				far : 1.25
+				far : 1.15
 			})) 
 		val =  mesh.geometry.boundingBox.min.z + info['Pavilion']['height-mm'] * 1000 / 2;
 		infoObj.add(drawArrow({
@@ -277,7 +294,7 @@ class Threejs extends Viewer
 				topToButtom : true,
 				data : info['Pavilion']['height-mm']
 				dir :  new THREE.Vector3( mesh.geometry.boundingBox.max.x , val *  -1 , 0 )
-				far : 1.25
+				far : 1.15
 			}))
 		val =  mesh.geometry.boundingBox.min.z + info['Total Depth']['mm'] * 1000 / 2;
 		infoObj.add(drawArrow({
@@ -286,9 +303,10 @@ class Threejs extends Viewer
 				topToButtom : true,
 				data : info['Total Depth']['mm']
 				dir :  new THREE.Vector3( mesh.geometry.boundingBox.min.x , val +  1 , 0 )
-				far : 1.25 
+				far : 1.15
 			}))
 		sceneInfo.add(infoObj)
+		render();
 		undefined
 
 
