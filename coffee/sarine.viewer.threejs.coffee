@@ -45,7 +45,7 @@ class Threejs extends Viewer
 		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
 			()->
 				createScene.apply(_t)
-				$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "info.json")).then((data,json) ->
+				$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "Info.json")).then((data,json) ->
 					info = json[0]
 					rawData = data[0]
 						.replace(/\s/g,"^")
