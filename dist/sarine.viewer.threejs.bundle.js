@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.2.0 -  Monday, May 11th, 2015, 9:39:51 AM 
+sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -140,7 +140,7 @@ sarine.viewer.threejs - v0.2.0 -  Monday, May 11th, 2015, 9:39:51 AM
       defer = $.Deferred();
       loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
         createScene.apply(_t);
-        return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "info.json")).then(function(data, json) {
+        return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
           var rawData;
           info = json[0];
           rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
