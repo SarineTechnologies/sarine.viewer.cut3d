@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM 
+sarine.viewer.threejs - v0.3.0 -  Thursday, May 14th, 2015, 11:31:27 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -35,7 +35,7 @@ class Viewer
 @Viewer = Viewer 
 
 class Threejs extends Viewer 
-	scene = undefined
+	scene = undefined 
 	sceneInfo = undefined
 	renderer = undefined
 	controls = undefined
@@ -55,6 +55,7 @@ class Threejs extends Viewer
 	mouseY = false;
 	infoOnly = false;
 	info = false;
+	edges = undefined;
 	
 	constructor: (options) -> 
 		super(options)
@@ -63,6 +64,8 @@ class Threejs extends Viewer
 		scale = 1
 		@version = $(@element).data("version") || "v1"
 		@viewersBaseUrl = stones[0].viewersBaseUrl
+	getScene : ()-> scene
+	getRenderer : ()-> renderer
 	convertElement : () ->
 		@element.css {
 			width : '100%'
@@ -162,8 +165,12 @@ class Threejs extends Viewer
 		renderer.domElement.addEventListener('mousedown', onMousedown , false)
 		document.getElementsByTagName("body")[0].addEventListener('mouseup', onMouseup , false)
 	render = () ->
+		if(mesh)
+			edges.rotation.x = mesh.rotation.x;
+			edges.rotation.z = mesh.rotation.z;
+			edges.updateMatrix()
 		if(!infoOnly)
-			requestAnimationFrame(render);
+			requestAnimationFrame(render); 
 		renderer.clear();
 		# controls.update();
 		renderer.render(scene, camera);
@@ -186,14 +193,14 @@ class Threejs extends Viewer
 		mesh = new THREE.Mesh(geom, @material) ;
 		mesh.material.opacity = 1
 		mesh.material.transparent = false;
-		meshWF = new THREE.Mesh( geom.clone(), @material.clone() ) ;
-		meshWF.scale.set(0.99 * scale, 0.99 * scale, 0.99 * scale)
-		meshWF.material.opacity = 1
 		mesh.geometry.center()
-		meshWF.geometry.center()
-		@edges = new THREE.EdgesHelper(mesh, 0x000000)
-		scene.add(rotation(mesh) )
-		scene.add(rotation(@edges) )
+		scene.add(rotation(mesh))
+		edges = new THREE.EdgesHelper(mesh.clone(), 0x000000)
+		edges.renderOrder = 1
+		edges.material.linewidth = 2;
+		scene.add(rotation(edges))
+		edges.position.setZ(100)
+		edges.updateMatrix()
 		mesh
 	rotation = (obj) ->
 		obj.rotation.x = Math.PI / 2
@@ -206,14 +213,20 @@ class Threejs extends Viewer
 		camera.position.set(0, 0, 5000) ;
 		camera.lookAt(scene.position) ;
 		# renderer = new THREE.WebGLRenderer({alpha: true} ) ;
-		renderer = new THREE.CanvasRenderer({alpha: true} ) ;
+		renderer = new THREE.WebGLRenderer({alpha: true ,logarithmicDepthBuffer: false} ) ;
 		renderer.autoClear = false;
 		canvasWidht = if @element.height() > @element.width() then @element.width() else @element.height();
 		cameraInfo = new THREE.OrthographicCamera(canvasWidht / -2, canvasWidht / 2, canvasWidht  / 2, canvasWidht  / - 2, - 10000, 10000) ;
 		sceneInfo.add(cameraInfo)
 		renderer.setSize(canvasWidht, canvasWidht) ;
 		@element[0].appendChild(renderer.domElement) ;
-		@material = new THREE.MeshBasicMaterial({ color: 0xcccccc, side: THREE.DoubleSide} )
+		@material = new THREE.MeshBasicMaterial({ 
+			# map: THREE.ImageUtils.loadTexture('http://www.html5canvastutorials.com/demos/assets/crate.jpg'), 
+			color: 0xcccccc, 
+			# side:THREE.BackSide, 
+			# depthWrite: false, 
+			# depthTest: false
+		})
 		render()
 	drawArrow = (options)->
 		{name, origin, length, hex, topToButtom,data,dir,far} = options

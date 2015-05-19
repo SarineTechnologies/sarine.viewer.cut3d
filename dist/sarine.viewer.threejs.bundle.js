@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM 
+sarine.viewer.threejs - v0.3.0 -  Thursday, May 14th, 2015, 11:31:27 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -71,7 +71,7 @@ sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM
   this.Viewer = Viewer;
 
   Threejs = (function(_super) {
-    var addMouseHandler, camera, cameraInfo, canvasWidht, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, url;
+    var addMouseHandler, camera, cameraInfo, canvasWidht, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, edges, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, url;
 
     __extends(Threejs, _super);
 
@@ -115,6 +115,8 @@ sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM
 
     info = false;
 
+    edges = void 0;
+
     function Threejs(options) {
       Threejs.__super__.constructor.call(this, options);
       color = options.color, font = options.font, infoOnly = options.infoOnly;
@@ -123,6 +125,14 @@ sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM
       this.version = $(this.element).data("version") || "v1";
       this.viewersBaseUrl = stones[0].viewersBaseUrl;
     }
+
+    Threejs.prototype.getScene = function() {
+      return scene;
+    };
+
+    Threejs.prototype.getRenderer = function() {
+      return renderer;
+    };
 
     Threejs.prototype.convertElement = function() {
       this.element.css({
@@ -258,6 +268,11 @@ sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM
     };
 
     render = function() {
+      if (mesh) {
+        edges.rotation.x = mesh.rotation.x;
+        edges.rotation.z = mesh.rotation.z;
+        edges.updateMatrix();
+      }
       if (!infoOnly) {
         requestAnimationFrame(render);
       }
@@ -269,7 +284,7 @@ sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM
     };
 
     drawMesh = function(data) {
-      var geom, meshWF, setFaces, vert, _i, _j, _len, _len1, _ref, _ref1;
+      var geom, setFaces, vert, _i, _j, _len, _len1, _ref, _ref1;
       setFaces = function(points, geometry) {
         geometry.faces.push(new THREE.Face3(points[0], points[1], points[2]));
         if (points.length !== 3) {
@@ -292,14 +307,14 @@ sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM
       mesh = new THREE.Mesh(geom, this.material);
       mesh.material.opacity = 1;
       mesh.material.transparent = false;
-      meshWF = new THREE.Mesh(geom.clone(), this.material.clone());
-      meshWF.scale.set(0.99 * scale, 0.99 * scale, 0.99 * scale);
-      meshWF.material.opacity = 1;
       mesh.geometry.center();
-      meshWF.geometry.center();
-      this.edges = new THREE.EdgesHelper(mesh, 0x000000);
       scene.add(rotation(mesh));
-      scene.add(rotation(this.edges));
+      edges = new THREE.EdgesHelper(mesh.clone(), 0x000000);
+      edges.renderOrder = 1;
+      edges.material.linewidth = 2;
+      scene.add(rotation(edges));
+      edges.position.setZ(100);
+      edges.updateMatrix();
       return mesh;
     };
 
@@ -315,8 +330,9 @@ sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM
       scene.add(camera);
       camera.position.set(0, 0, 5000);
       camera.lookAt(scene.position);
-      renderer = new THREE.CanvasRenderer({
-        alpha: true
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        logarithmicDepthBuffer: false
       });
       renderer.autoClear = false;
       canvasWidht = this.element.height() > this.element.width() ? this.element.width() : this.element.height();
@@ -325,8 +341,7 @@ sarine.viewer.threejs - v0.3.0 -  Monday, May 11th, 2015, 12:00:50 PM
       renderer.setSize(canvasWidht, canvasWidht);
       this.element[0].appendChild(renderer.domElement);
       this.material = new THREE.MeshBasicMaterial({
-        color: 0xcccccc,
-        side: THREE.DoubleSide
+        color: 0xcccccc
       });
       return render();
     };
