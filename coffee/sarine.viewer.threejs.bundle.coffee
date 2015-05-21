@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.4.0 -  Tuesday, May 19th, 2015, 4:55:35 PM 
+sarine.viewer.threejs - v0.4.0 -  Thursday, May 21st, 2015, 11:39:23 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -35,6 +35,7 @@ class Viewer
 @Viewer = Viewer 
 
 class Threejs extends Viewer 
+	THREE = undefined
 	scene = undefined 
 	sceneInfo = undefined
 	renderer = undefined
@@ -101,22 +102,25 @@ class Threejs extends Viewer
 					)
 			)
 		defer
-	full_init : ()-> 
+	full_init : ()->  
 		defer = $.Deferred()
 		defer.resolve(@)		
 		defer
 	play : () -> return		
 	stop : () -> return		
 	loadScript = (url)->
+		onload = ()->
+			THREE = GetTHREE();
+			defer.resolve(_t);
 		_t = @
 		defer = $.Deferred()
 		if($("[src='" + url + "']")[0])
-			$("[src='" + url + "']").on("load",()-> defer.resolve(_t))
+			$("[src='" + url + "']").on("load",onload)
 			return defer;
 		s = $("<script>", {
 			type: "text/javascript"
 		}).appendTo("body").end()[0];
-		s.onload = ()-> defer.resolve(_t);
+		s.onload = onload
 		s.src = url
 		defer
 	rotateScene = (deltaX,deltaY) ->
@@ -174,7 +178,7 @@ class Threejs extends Viewer
 		renderer.clear();
 		# controls.update();
 		renderer.render(scene, camera);
-		if(mesh && mesh.rotation && parseInt(mesh.rotation.x * 10) == parseInt(Math.PI * 5))
+		if(mesh && mesh.rotation && parseInt(Math.abs(mesh.rotation.x) % (Math.PI * 2) * 10) == parseInt(Math.PI * 5))
 			renderer.render(sceneInfo, cameraInfo);
 	drawMesh = (data) ->
 		setFaces = (points, geometry) ->
