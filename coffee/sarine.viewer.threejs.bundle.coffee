@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.6.0 -  Tuesday, May 26th, 2015, 4:25:05 PM 
+sarine.viewer.threejs - v0.6.0 -  Thursday, July 9th, 2015, 9:57:46 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -179,7 +179,7 @@ class Threejs extends Viewer
 		renderer.clear();
 		# controls.update();
 		renderer.render(scene, camera);
-		if(mesh && mesh.rotation && parseInt(Math.abs(mesh.rotation.x) % (Math.PI * 2) * 10) == parseInt(Math.PI * 5))
+		if(mesh && mesh.rotation && (parseInt(mesh.rotation.x  / (Math.PI / 2) + 0.95)  - 1 ) % 4  == 0 && (parseInt(mesh.rotation.x  / (Math.PI / 2) + 0.05)  - 1 ) % 4  == 0 )
 			renderer.render(sceneInfo, cameraInfo);
 	drawMesh = (data) ->
 		setFaces = (points, geometry) ->
@@ -223,7 +223,19 @@ class Threejs extends Viewer
 		canvasWidht = if @element.height() > @element.width() then @element.width() else @element.height();
 		cameraInfo = new THREE.OrthographicCamera(canvasWidht / -2, canvasWidht / 2, canvasWidht  / 2, canvasWidht  / - 2, - 10000, 10000) ;
 		sceneInfo.add(cameraInfo)
-		renderer.setSize(canvasWidht, canvasWidht) ;
+
+		# create event for top, side and bottom on the canvas element
+		$(renderer.domElement).on("top",()-> mesh.rotation.x = Math.PI)
+		$(renderer.domElement).on("side",()-> mesh.rotation.x = Math.PI/2)
+		$(renderer.domElement).on("bottom",()-> mesh.rotation.x = 0)
+
+		# create event for toggle transparent on the canvas element
+		$(renderer.domElement).on("transparent",()-> 
+			mesh.material.opacity = if mesh.material.opacity == 1 then 0 else 1
+			mesh.material.transparent = !mesh.material.transparent
+		)
+		ratio = window.devicePixelRatio || 1
+		renderer.setSize(canvasWidht * ratio, canvasWidht * ratio)
 		@element[0].appendChild(renderer.domElement) ;
 		@material = new THREE.MeshBasicMaterial({ 
 			# map: THREE.ImageUtils.loadTexture('http://www.html5canvastutorials.com/demos/assets/crate.jpg'), 
