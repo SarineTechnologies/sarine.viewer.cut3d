@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.6.0 -  Thursday, July 9th, 2015, 11:08:11 AM 
+sarine.viewer.threejs - v0.7.0 -  Thursday, July 9th, 2015, 11:20:18 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -330,7 +330,6 @@ sarine.viewer.threejs - v0.6.0 -  Thursday, July 9th, 2015, 11:08:11 AM
     };
 
     createScene = function() {
-      var ratio;
       scene = new THREE.Scene();
       sceneInfo = new THREE.Scene();
       camera = new THREE.OrthographicCamera(12000 / -2.5, 12000 / 2.5, 12000 / 2.5, 12000 / -2.5, -10000, 10000);
@@ -359,8 +358,8 @@ sarine.viewer.threejs - v0.6.0 -  Thursday, July 9th, 2015, 11:08:11 AM
         mesh.material.opacity = mesh.material.opacity === 1 ? 0 : 1;
         return mesh.material.transparent = !mesh.material.transparent;
       });
-      ratio = window.devicePixelRatio || 1;
-      renderer.setSize(canvasWidht * ratio, canvasWidht * ratio);
+      renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+      renderer.setSize(canvasWidht, canvasWidht);
       this.element[0].appendChild(renderer.domElement);
       this.material = new THREE.MeshBasicMaterial({
         color: 0xcccccc

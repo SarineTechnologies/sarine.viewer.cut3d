@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.6.0 -  Thursday, July 9th, 2015, 11:08:11 AM 
+sarine.viewer.threejs - v0.7.0 -  Thursday, July 9th, 2015, 11:20:18 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -234,8 +234,8 @@ class Threejs extends Viewer
 			mesh.material.opacity = if mesh.material.opacity == 1 then 0 else 1
 			mesh.material.transparent = !mesh.material.transparent
 		)
-		ratio = window.devicePixelRatio || 1
-		renderer.setSize(canvasWidht * ratio, canvasWidht * ratio)
+		renderer.setPixelRatio( if window.devicePixelRatio then window.devicePixelRatio else 1)
+		renderer.setSize(canvasWidht, canvasWidht)
 		@element[0].appendChild(renderer.domElement) ;
 		@material = new THREE.MeshBasicMaterial({ 
 			# map: THREE.ImageUtils.loadTexture('http://www.html5canvastutorials.com/demos/assets/crate.jpg'), 
