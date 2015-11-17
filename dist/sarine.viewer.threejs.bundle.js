@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM 
+sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 2:30:39 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -173,9 +173,9 @@ sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM
         defer;
       } else {
         loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
-          createScene.apply(_t);
           return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
             var rawData;
+            createScene.apply(_t);
             info = json[0];
             rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
               return s.length > 0;
@@ -195,6 +195,20 @@ sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM
               addMouseHandler.apply(_t);
             }
             return defer.resolve(_t);
+          }).fail(function() {
+            _t.loadImage(_t.callbackPic).then(function(img) {
+              var canvas;
+              canvas = $("<canvas >");
+              canvas.attr({
+                "class": "no_stone",
+                "width": img.width,
+                "height": img.height
+              });
+              canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
+              _t.element.append(canvas);
+              return defer.resolve(_t);
+            });
+            return defer;
           });
         });
       }
@@ -351,7 +365,7 @@ sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM
     createScene = function() {
       scene = new THREE.Scene();
       sceneInfo = new THREE.Scene();
-      camera = new THREE.OrthographicCamera(12000 / -2.5, 12000 / 2.5, 12000 / 2.5, 12000 / -2.5, -10000, 10000);
+      camera = new THREE.OrthographicCamera(13000 / -2.5, 13000 / 2.5, 13000 / 2.5, 13000 / -2.5, -10000, 10000);
       scene.add(camera);
       camera.position.set(0, 0, 5000);
       camera.lookAt(scene.position);
@@ -454,7 +468,7 @@ sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM
             }
           })();
           textGeom = new THREE.TextGeometry(text, {
-            size: 12,
+            size: 10,
             font: "gentilis",
             wieght: "bold"
           });
@@ -524,7 +538,7 @@ sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM
         topToButtom: true,
         data: info['Total Depth'],
         dir: TotalDepth.clone().setY(TotalDepth.y + 1),
-        far: 1.00
+        far: 1.05
       }));
       infoObj.add(drawText({
         texts: info['Culet Size'],
@@ -546,13 +560,14 @@ sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM
         names: ['angel-deg'],
         toFixed: "0"
       }));
-      GirdleTopTrue = new THREE.Vector3(mesh.geometry.boundingBox.min.x, Crown.y - info['Crown']['height-mm'] * 500, 0);
+      GirdleTopTrue = new THREE.Vector3(mesh.geometry.boundingBox.min.x * 1.05, Crown.y - info['Crown']['height-mm'] * 500, 0);
       GirdleTop = projectSceneToInfo(GirdleTopTrue.clone());
       ThicknessMmText = drawText({
         texts: info['Girdle'],
         position: GirdleTop.clone().setX(GirdleTop.x * grildFarX).setY(GirdleTop.y + GirdleTop.y * grildFarY),
         names: ['Thickness-mm']
       });
+      ThicknessMmText.position.setX(ThicknessMmText.position.x - 5);
       material = new THREE.LineBasicMaterial({
         color: hex
       });
@@ -561,14 +576,14 @@ sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM
       line = new THREE.Line(geometry, material);
       infoObj.add(ThicknessMmText);
       infoObj.add(line);
-      GirdleBottmTrue = new THREE.Vector3(mesh.geometry.boundingBox.min.x, Pavilion.y + info['Pavilion']['height-mm'] * 500, 0);
+      GirdleBottmTrue = new THREE.Vector3(mesh.geometry.boundingBox.min.x * 1.05, Pavilion.y + info['Pavilion']['height-mm'] * 500, 0);
       GirdleBottm = projectSceneToInfo(GirdleBottmTrue.clone());
       ThicknessPercentageText = drawText({
         texts: info['Girdle'],
         position: GirdleBottm.clone().setX(GirdleBottm.x * grildFarX).setY(GirdleBottm.y - GirdleBottm.y * grildFarY),
         names: ['Thickness-percentages']
       });
-      ThicknessPercentageText.position.setX(ThicknessMmText.position.x + ThicknessMmText.children[0].geometry.boundingBox.max.x - ThicknessPercentageText.children[0].geometry.boundingBox.max.x);
+      ThicknessPercentageText.position.setX((ThicknessMmText.position.x + ThicknessMmText.children[0].geometry.boundingBox.max.x - ThicknessPercentageText.children[0].geometry.boundingBox.max.x) * 0.75);
       material = new THREE.LineBasicMaterial({
         color: hex
       });
