@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.9.0 -  Thursday, July 9th, 2015, 1:52:22 PM 
+sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -71,7 +71,7 @@ sarine.viewer.threejs - v0.9.0 -  Thursday, July 9th, 2015, 1:52:22 PM
   this.Viewer = Viewer;
 
   Threejs = (function(_super) {
-    var THREE, addMouseHandler, camera, cameraInfo, canvasWidht, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, edges, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, projectSceneToInfo, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, url;
+    var THREE, addMouseHandler, camera, cameraInfo, canvasWidht, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, edges, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, projectSceneToInfo, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, shape, url;
 
     __extends(Threejs, _super);
 
@@ -119,11 +119,14 @@ sarine.viewer.threejs - v0.9.0 -  Thursday, July 9th, 2015, 1:52:22 PM
 
     edges = void 0;
 
+    shape = void 0;
+
     function Threejs(options) {
       Threejs.__super__.constructor.call(this, options);
       color = options.color, font = options.font, infoOnly = options.infoOnly;
       color = color || 0xffffff;
       scale = 1;
+      shape = options.stoneProperties.shape.toLowerCase();
       this.version = $(this.element).data("version") || "v1";
       this.viewersBaseUrl = stones[0].viewersBaseUrl;
     }
@@ -154,31 +157,47 @@ sarine.viewer.threejs - v0.9.0 -  Thursday, July 9th, 2015, 1:52:22 PM
       var defer, _t;
       _t = this;
       defer = $.Deferred();
-      loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
-        createScene.apply(_t);
-        return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
-          var rawData;
-          info = json[0];
-          rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
-            return s.length > 0;
+      if (shape !== 'round' && shape !== 'modifiedround') {
+        this.loadImage(this.callbackPic).then(function(img) {
+          var canvas;
+          canvas = $("<canvas >");
+          canvas.attr({
+            "class": "no_stone",
+            "width": img.width,
+            "height": img.height
           });
-          drawMesh.apply(_t, [
-            {
-              vertices: rawData.slice(1, +parseInt(rawData[0]) + 1 || 9e9).map(function(str) {
-                return str.replace(',', '').split(';').slice(0, 3);
-              }),
-              polygons: rawData.slice(parseInt(rawData[0]) + 2, +rawData.length + 1 || 9e9).map(function(str) {
-                return str.replace(/(\d+;)/, '').replace(/(;;|;,)/, "").split(",");
-              })
-            }
-          ]);
-          info = drawInfo.apply(_t);
-          if (!infoOnly) {
-            addMouseHandler.apply(_t);
-          }
+          canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
+          _t.element.append(canvas);
           return defer.resolve(_t);
         });
-      });
+        defer;
+      } else {
+        loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
+          createScene.apply(_t);
+          return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
+            var rawData;
+            info = json[0];
+            rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
+              return s.length > 0;
+            });
+            drawMesh.apply(_t, [
+              {
+                vertices: rawData.slice(1, +parseInt(rawData[0]) + 1 || 9e9).map(function(str) {
+                  return str.replace(',', '').split(';').slice(0, 3);
+                }),
+                polygons: rawData.slice(parseInt(rawData[0]) + 2, +rawData.length + 1 || 9e9).map(function(str) {
+                  return str.replace(/(\d+;)/, '').replace(/(;;|;,)/, "").split(",");
+                })
+              }
+            ]);
+            info = drawInfo.apply(_t);
+            if (!infoOnly) {
+              addMouseHandler.apply(_t);
+            }
+            return defer.resolve(_t);
+          });
+        });
+      }
       return defer;
     };
 
