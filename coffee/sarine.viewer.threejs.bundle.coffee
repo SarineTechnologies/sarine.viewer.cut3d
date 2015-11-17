@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM 
+sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 2:30:39 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -81,7 +81,7 @@ class Threejs extends Viewer
 	first_init : ()->
 		_t = @
 		defer = $.Deferred()
-		#temp support only for round/modifiedround
+		##temp support only for round/modifiedround
 		if (shape != 'round' &&  shape != 'modifiedround')
 			@loadImage(@callbackPic).then (img)->
 				canvas = $("<canvas >")
@@ -93,9 +93,9 @@ class Threejs extends Viewer
 		#end of temp
 		else		
 			loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
-				()->
-					createScene.apply(_t)
+				()->					
 					$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "Info.json")).then((data,json) ->
+						createScene.apply(_t)
 						info = json[0]
 						rawData = data[0]
 							.replace(/\s/g,"^")
@@ -114,6 +114,14 @@ class Threejs extends Viewer
 							addMouseHandler.apply(_t);
 						defer.resolve(_t) 
 						)
+					.fail ()-> 
+						_t.loadImage(_t.callbackPic).then (img)->
+							canvas = $("<canvas >")
+							canvas.attr({"class": "no_stone" ,"width": img.width, "height": img.height}) 
+							canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height)
+							_t.element.append(canvas)
+							defer.resolve(_t) 	
+						defer					
 				)
 		defer
 	full_init : ()->  
@@ -226,10 +234,10 @@ class Threejs extends Viewer
 	createScene = ()->
 		scene = new THREE.Scene() ;
 		sceneInfo = new THREE.Scene() ;
-		camera = new THREE.OrthographicCamera(12000 / -2.5, 12000 / 2.5, 12000  / 2.5, 12000  / - 2.5, - 10000, 10000) ;
+		camera = new THREE.OrthographicCamera(13000 / -2.5, 13000 / 2.5, 13000  / 2.5, 13000  / - 2.5, - 10000, 10000) ;
 		scene.add(camera) ;
-		camera.position.set(0, 0, 5000) ;
-		camera.lookAt(scene.position) ;
+		camera.position.set(0, 0, 5000) 		
+		camera.lookAt(scene.position) 
 		# renderer = new THREE.WebGLRenderer({alpha: true} ) ;
 		renderer = new THREE.WebGLRenderer({alpha: true ,logarithmicDepthBuffer: false , antialias : true} ) ;
 		renderer.autoClear = false;
@@ -307,7 +315,7 @@ class Threejs extends Viewer
 				when val.indexOf("deg") > -1 then options.texts[val].toFixed(options.toFixed || 1) + "°" 
 
 			textGeom = new THREE.TextGeometry( text , {
-				size: 12,
+				size: 10,
 				font: "gentilis", 
 				wieght : "bold"
 			});
@@ -388,7 +396,7 @@ class Threejs extends Viewer
 				data : info['Total Depth']
 				# dir :  new THREE.Vector3( mesh.geometry.boundingBox.min.x , TotalDepth +  1 , 0 )
 				dir :  TotalDepth.clone().setY(TotalDepth.y + 1)
-				far : 1.00
+				far : 1.05
 			}))
 		# draw Culet Size percentages
 		infoObj.add(drawText({
@@ -423,16 +431,19 @@ class Threejs extends Viewer
 			}))
 		# draw Girdle Thickness-mm
 		GirdleTopTrue = new THREE.Vector3( 
-						mesh.geometry.boundingBox.min.x, 
+						mesh.geometry.boundingBox.min.x * 1.05, 
 						Crown.y - info['Crown']['height-mm'] * 500, 
 						0
 					)
 		GirdleTop = projectSceneToInfo(GirdleTopTrue.clone())
 		ThicknessMmText = drawText({
 				texts : info['Girdle']
-				position : GirdleTop.clone().setX(GirdleTop.x * grildFarX).setY(GirdleTop.y  + GirdleTop.y * grildFarY)
+				position : GirdleTop.clone().setX((GirdleTop.x * grildFarX)).setY(GirdleTop.y  + GirdleTop.y * grildFarY)
 				names : ['Thickness-mm']
 			})
+
+		ThicknessMmText.position.setX(ThicknessMmText.position.x - 5)
+		
 		material = new THREE.LineBasicMaterial({
 			color: hex
 		});
@@ -455,7 +466,7 @@ class Threejs extends Viewer
 		infoObj.add line
 		# draw Girdle Thickness-percentages
 		GirdleBottmTrue = new THREE.Vector3( 
-						mesh.geometry.boundingBox.min.x, 
+						mesh.geometry.boundingBox.min.x * 1.05, 
 						Pavilion.y + info['Pavilion']['height-mm'] * 500, 
 						0
 					)
@@ -465,7 +476,7 @@ class Threejs extends Viewer
 				position : GirdleBottm.clone().setX(GirdleBottm.x * grildFarX).setY(GirdleBottm.y  - GirdleBottm.y * grildFarY),
 				names : ['Thickness-percentages']
 			})
-		ThicknessPercentageText.position.setX(ThicknessMmText.position.x + ThicknessMmText.children[0].geometry.boundingBox.max.x - ThicknessPercentageText.children[0].geometry.boundingBox.max.x)
+		ThicknessPercentageText.position.setX((ThicknessMmText.position.x + ThicknessMmText.children[0].geometry.boundingBox.max.x - ThicknessPercentageText.children[0].geometry.boundingBox.max.x) * 0.75)		
 		material = new THREE.LineBasicMaterial({
 			color: hex
 		});
