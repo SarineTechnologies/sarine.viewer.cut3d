@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.9.0 -  Thursday, July 9th, 2015, 1:52:22 PM 
+sarine.viewer.threejs - v0.9.0 -  Tuesday, November 17th, 2015, 9:28:28 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -57,12 +57,14 @@ class Threejs extends Viewer
 	infoOnly = false;
 	info = false;
 	edges = undefined;
+	shape = undefined;
 	
 	constructor: (options) -> 
 		super(options)
 		{color,font, infoOnly} = options
 		color = color || 0xffffff
 		scale = 1
+		shape = options.stoneProperties.shape.toLowerCase()
 		@version = $(@element).data("version") || "v1"
 		@viewersBaseUrl = stones[0].viewersBaseUrl
 	getScene : ()-> scene
@@ -79,29 +81,40 @@ class Threejs extends Viewer
 	first_init : ()->
 		_t = @
 		defer = $.Deferred()
-		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
-			()->
-				createScene.apply(_t)
-				$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "Info.json")).then((data,json) ->
-					info = json[0]
-					rawData = data[0]
-						.replace(/\s/g,"^")
-						.match(/Mesh(.*?)}/)[0]
-						.replace(/[Mesh|{|}]/g,"")
-						.split("^")
-						.filter((s)->s.length > 0)
+		#temp support only for round/modifiedround
+		if (shape != 'round' &&  shape != 'modifiedround')
+			@loadImage(@callbackPic).then (img)->
+				canvas = $("<canvas >")
+				canvas.attr({"class": "no_stone" ,"width": img.width, "height": img.height}) 
+				canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height)
+				_t.element.append(canvas)
+				defer.resolve(_t) 
+			defer
+		#end of temp
+		else		
+			loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
+				()->
+					createScene.apply(_t)
+					$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "Info.json")).then((data,json) ->
+						info = json[0]
+						rawData = data[0]
+							.replace(/\s/g,"^")
+							.match(/Mesh(.*?)}/)[0]
+							.replace(/[Mesh|{|}]/g,"")
+							.split("^")
+							.filter((s)->s.length > 0)
 
-					drawMesh.apply(_t,[{
-						vertices : rawData[1..parseInt(rawData[0])].map((str)-> str.replace(',','').split(';')[0..2]),
-						polygons :rawData[parseInt(rawData[0]) + 2 .. rawData.length]
-							.map((str)-> str.replace(/(\d+;)/, '').replace(/(;;|;,)/,"").split(","))
-							}]);
-					info = drawInfo.apply(_t);
-					if(!infoOnly)
-						addMouseHandler.apply(_t);
-					defer.resolve(_t) 
-					)
-			)
+						drawMesh.apply(_t,[{
+							vertices : rawData[1..parseInt(rawData[0])].map((str)-> str.replace(',','').split(';')[0..2]),
+							polygons :rawData[parseInt(rawData[0]) + 2 .. rawData.length]
+								.map((str)-> str.replace(/(\d+;)/, '').replace(/(;;|;,)/,"").split(","))
+								}]);
+						info = drawInfo.apply(_t);
+						if(!infoOnly)
+							addMouseHandler.apply(_t);
+						defer.resolve(_t) 
+						)
+				)
 		defer
 	full_init : ()->  
 		defer = $.Deferred()
