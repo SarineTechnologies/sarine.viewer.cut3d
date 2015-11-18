@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.10.0 -  Tuesday, November 17th, 2015, 3:12:45 PM 
+sarine.viewer.threejs - v0.10.0 -  Wednesday, November 18th, 2015, 11:06:05 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -47,7 +47,7 @@ class Threejs extends Viewer
 	scale = undefined
 	url = undefined
 	info = undefined
-	canvasWidht = undefined
+	canvasWidth = undefined
 	fontSize = undefined
 	color = undefined
 	font = undefined
@@ -241,8 +241,8 @@ class Threejs extends Viewer
 		# renderer = new THREE.WebGLRenderer({alpha: true} ) ;
 		renderer = new THREE.WebGLRenderer({alpha: true ,logarithmicDepthBuffer: false , antialias : true} ) ;
 		renderer.autoClear = false;
-		canvasWidht = if @element.height() > @element.width() then @element.width() else @element.height();
-		cameraInfo = new THREE.OrthographicCamera(canvasWidht / -2, canvasWidht / 2, canvasWidht  / 2, canvasWidht  / - 2, - 10000, 10000) ;
+		canvasWidth = if @element.parent().height() > @element.parent().width() then @element.parent().width() else @element.parent().height();
+		cameraInfo = new THREE.OrthographicCamera(canvasWidth / -2, canvasWidth / 2, canvasWidth  / 2, canvasWidth  / - 2, - 10000, 10000) ;
 		sceneInfo.add(cameraInfo)
 
 		# create event for top, side and bottom on the canvas element
@@ -256,7 +256,7 @@ class Threejs extends Viewer
 			mesh.material.transparent = !mesh.material.transparent
 		)
 		renderer.setPixelRatio( if window.devicePixelRatio then window.devicePixelRatio else 1)
-		renderer.setSize(canvasWidht, canvasWidht)
+		renderer.setSize(canvasWidth, canvasWidth)
 		@element[0].appendChild(renderer.domElement) ;
 		@material = new THREE.MeshBasicMaterial({ 
 			# map: THREE.ImageUtils.loadTexture('http://www.html5canvastutorials.com/demos/assets/crate.jpg'), 
