@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.10.0 -  Tuesday, November 17th, 2015, 3:12:45 PM 
+sarine.viewer.threejs - v0.10.0 -  Wednesday, November 18th, 2015, 11:06:05 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -71,7 +71,7 @@ sarine.viewer.threejs - v0.10.0 -  Tuesday, November 17th, 2015, 3:12:45 PM
   this.Viewer = Viewer;
 
   Threejs = (function(_super) {
-    var THREE, addMouseHandler, camera, cameraInfo, canvasWidht, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, edges, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, projectSceneToInfo, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, shape, url;
+    var THREE, addMouseHandler, camera, cameraInfo, canvasWidth, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, edges, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, projectSceneToInfo, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, shape, url;
 
     __extends(Threejs, _super);
 
@@ -99,7 +99,7 @@ sarine.viewer.threejs - v0.10.0 -  Tuesday, November 17th, 2015, 3:12:45 PM
 
     info = void 0;
 
-    canvasWidht = void 0;
+    canvasWidth = void 0;
 
     fontSize = void 0;
 
@@ -375,8 +375,8 @@ sarine.viewer.threejs - v0.10.0 -  Tuesday, November 17th, 2015, 3:12:45 PM
         antialias: true
       });
       renderer.autoClear = false;
-      canvasWidht = this.element.height() > this.element.width() ? this.element.width() : this.element.height();
-      cameraInfo = new THREE.OrthographicCamera(canvasWidht / -2, canvasWidht / 2, canvasWidht / 2, canvasWidht / -2, -10000, 10000);
+      canvasWidth = this.element.parent().height() > this.element.parent().width() ? this.element.parent().width() : this.element.parent().height();
+      cameraInfo = new THREE.OrthographicCamera(canvasWidth / -2, canvasWidth / 2, canvasWidth / 2, canvasWidth / -2, -10000, 10000);
       sceneInfo.add(cameraInfo);
       $(renderer.domElement).on("top", function() {
         return mesh.rotation.x = Math.PI;
@@ -392,7 +392,7 @@ sarine.viewer.threejs - v0.10.0 -  Tuesday, November 17th, 2015, 3:12:45 PM
         return mesh.material.transparent = !mesh.material.transparent;
       });
       renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-      renderer.setSize(canvasWidht, canvasWidht);
+      renderer.setSize(canvasWidth, canvasWidth);
       this.element[0].appendChild(renderer.domElement);
       this.material = new THREE.MeshBasicMaterial({
         color: 0xcccccc
