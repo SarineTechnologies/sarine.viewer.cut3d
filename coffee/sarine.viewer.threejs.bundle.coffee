@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.11.0 -  Wednesday, November 18th, 2015, 11:11:04 AM 
+sarine.viewer.threejs - v0.11.0 -  Monday, November 23rd, 2015, 4:01:38 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -61,7 +61,7 @@ class Threejs extends Viewer
 	
 	constructor: (options) -> 
 		super(options)
-		{color,font, infoOnly} = options
+		{color,font, infoOnly} = options  
 		color = color || 0xffffff
 		scale = 1
 		shape = options.stoneProperties.shape.toLowerCase()
@@ -78,8 +78,8 @@ class Threejs extends Viewer
 			"min-height" : 200
 			} 
 		@element
-	first_init : ()->
-		_t = @
+	full_init : ()->
+		_t = @		
 		defer = $.Deferred()
 		##temp support only for round/modifiedround
 		if (shape != 'round' &&  shape != 'modifiedround')
@@ -91,7 +91,8 @@ class Threejs extends Viewer
 				defer.resolve(_t) 
 			defer
 		#end of temp
-		else		
+		else					
+			@showLoader(_t)
 			loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
 				()->					
 					$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "Info.json")).then((data,json) ->
@@ -110,6 +111,8 @@ class Threejs extends Viewer
 								.map((str)-> str.replace(/(\d+;)/, '').replace(/(;;|;,)/,"").split(","))
 								}]);
 						info = drawInfo.apply(_t);
+						console.log "hide loader"
+						_t.hideLoader()	
 						if(!infoOnly)
 							addMouseHandler.apply(_t);
 						defer.resolve(_t) 
@@ -119,20 +122,28 @@ class Threejs extends Viewer
 							canvas = $("<canvas >")
 							canvas.attr({"class": "no_stone" ,"width": img.width, "height": img.height}) 
 							canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height)
+							_t.hideLoader()
 							_t.element.append(canvas)
 							defer.resolve(_t) 	
 						defer					
 				)
 		defer
-	full_init : ()->  
-		defer = $.Deferred()
-		defer.resolve(@)		
+	first_init : ()->  
+		defer = $.Deferred()				
+		defer.resolve(@)
 		defer
+	showLoader : (_t)->
+		spinner = $('<div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>')
+		_t.element.append spinner	
+	hideLoader :()->
+		$('.spinner').hide()
+
+
 	play : () -> return		
 	stop : () -> return		
 	loadScript = (url)->
 		onload = ()->
-			THREE = GetTHREE();
+			THREE = GetTHREE(); 			 
 			defer.resolve(_t);
 		_t = @
 		defer = $.Deferred()
@@ -201,7 +212,7 @@ class Threejs extends Viewer
 		# controls.update();
 		renderer.render(scene, camera);
 		if(mesh && mesh.rotation && (parseInt(mesh.rotation.x  / (Math.PI / 2) + 0.95)  - 1 ) % 4  == 0 && (parseInt(mesh.rotation.x  / (Math.PI / 2) + 0.05)  - 1 ) % 4  == 0 )
-			renderer.render(sceneInfo, cameraInfo);
+			renderer.render(sceneInfo, cameraInfo); 
 	drawMesh = (data) ->
 		setFaces = (points, geometry) ->
 			geometry.faces.push(new THREE.Face3(points[0], points[1], points[2]) )
@@ -211,11 +222,12 @@ class Threejs extends Viewer
 			geometry.computeFaceNormals()
 
 		geom = new THREE.Geometry() ;
-
+		
 		for vert in data.vertices
 			geom.vertices.push(new THREE.Vector3(vert[0] * scale, vert[1] * scale, vert[2] * scale) )
 		for vert in data.polygons
 			setFaces(vert, geom)
+		
 		mesh = new THREE.Mesh(geom, @material) ;
 		mesh.material.opacity = 1
 		mesh.material.transparent = false;

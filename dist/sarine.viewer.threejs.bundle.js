@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.11.0 -  Wednesday, November 18th, 2015, 11:11:04 AM 
+sarine.viewer.threejs - v0.11.0 -  Monday, November 23rd, 2015, 4:01:38 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -153,7 +153,7 @@ sarine.viewer.threejs - v0.11.0 -  Wednesday, November 18th, 2015, 11:11:04 AM
       return this.element;
     };
 
-    Threejs.prototype.first_init = function() {
+    Threejs.prototype.full_init = function() {
       var defer, _t;
       _t = this;
       defer = $.Deferred();
@@ -172,6 +172,7 @@ sarine.viewer.threejs - v0.11.0 -  Wednesday, November 18th, 2015, 11:11:04 AM
         });
         defer;
       } else {
+        this.showLoader(_t);
         loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
           return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
             var rawData;
@@ -191,6 +192,8 @@ sarine.viewer.threejs - v0.11.0 -  Wednesday, November 18th, 2015, 11:11:04 AM
               }
             ]);
             info = drawInfo.apply(_t);
+            console.log("hide loader");
+            _t.hideLoader();
             if (!infoOnly) {
               addMouseHandler.apply(_t);
             }
@@ -205,6 +208,7 @@ sarine.viewer.threejs - v0.11.0 -  Wednesday, November 18th, 2015, 11:11:04 AM
                 "height": img.height
               });
               canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
+              _t.hideLoader();
               _t.element.append(canvas);
               return defer.resolve(_t);
             });
@@ -215,11 +219,21 @@ sarine.viewer.threejs - v0.11.0 -  Wednesday, November 18th, 2015, 11:11:04 AM
       return defer;
     };
 
-    Threejs.prototype.full_init = function() {
+    Threejs.prototype.first_init = function() {
       var defer;
       defer = $.Deferred();
       defer.resolve(this);
       return defer;
+    };
+
+    Threejs.prototype.showLoader = function(_t) {
+      var spinner;
+      spinner = $('<div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>');
+      return _t.element.append(spinner);
+    };
+
+    Threejs.prototype.hideLoader = function() {
+      return $('.spinner').hide();
     };
 
     Threejs.prototype.play = function() {};
