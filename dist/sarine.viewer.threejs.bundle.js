@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.11.0 -  Monday, November 23rd, 2015, 4:01:38 PM 
+sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:09 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
