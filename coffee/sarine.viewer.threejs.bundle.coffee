@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:09 PM 
+sarine.viewer.threejs - v0.12.0 -  Thursday, November 26th, 2015, 3:36:17 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -61,11 +61,11 @@ class Threejs extends Viewer
 	
 	constructor: (options) -> 
 		super(options)
-		{color,font, infoOnly} = options  
+		{color,font, infoOnly} = options   
 		color = color || 0xffffff
-		scale = 1
+		scale = 1 #TODO -set it if stone too big or too small
 		shape = options.stoneProperties.shape.toLowerCase()
-		@version = $(@element).data("version") || "v1"
+		@version = $(@element).data("version") || "v1" 
 		@viewersBaseUrl = stones[0].viewersBaseUrl
 	getScene : ()-> scene
 	getSceneInfo : ()-> sceneInfo
@@ -80,63 +80,53 @@ class Threejs extends Viewer
 		@element
 	full_init : ()->
 		_t = @		
-		defer = $.Deferred()
-		##temp support only for round/modifiedround
-		if (shape != 'round' &&  shape != 'modifiedround')
-			@loadImage(@callbackPic).then (img)->
-				canvas = $("<canvas >")
-				canvas.attr({"class": "no_stone" ,"width": img.width, "height": img.height}) 
-				canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height)
-				_t.element.append(canvas)
-				defer.resolve(_t) 
-			defer
-		#end of temp
-		else					
-			@showLoader(_t)
-			loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
-				()->					
-					$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "Info.json")).then((data,json) ->
-						createScene.apply(_t)
-						info = json[0]
-						rawData = data[0]
-							.replace(/\s/g,"^")
-							.match(/Mesh(.*?)}/)[0]
-							.replace(/[Mesh|{|}]/g,"")
-							.split("^")
-							.filter((s)->s.length > 0)
+		defer = $.Deferred() 
+			
+		@showLoader(_t)
+		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
+			()->					
+				$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "Info.json")).then((data,json) ->
+					createScene.apply(_t)
+					info = json[0]
+					rawData = data[0]
+						.replace(/\s/g,"^")
+						.match(/Mesh(.*?)}/)[0]
+						.replace(/[Mesh|{|}]/g,"")
+						.split("^")
+						.filter((s)->s.length > 0)
 
-						drawMesh.apply(_t,[{
-							vertices : rawData[1..parseInt(rawData[0])].map((str)-> str.replace(',','').split(';')[0..2]),
-							polygons :rawData[parseInt(rawData[0]) + 2 .. rawData.length]
-								.map((str)-> str.replace(/(\d+;)/, '').replace(/(;;|;,)/,"").split(","))
-								}]);
-						info = drawInfo.apply(_t);
-						console.log "hide loader"
-						_t.hideLoader()	
-						if(!infoOnly)
-							addMouseHandler.apply(_t);
-						defer.resolve(_t) 
-						)
-					.fail ()-> 
-						_t.loadImage(_t.callbackPic).then (img)->
-							canvas = $("<canvas >")
-							canvas.attr({"class": "no_stone" ,"width": img.width, "height": img.height}) 
-							canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height)
-							_t.hideLoader()
-							_t.element.append(canvas)
-							defer.resolve(_t) 	
-						defer					
-				)
+					drawMesh.apply(_t,[{
+						vertices : rawData[1..parseInt(rawData[0])].map((str)-> str.replace(',','').split(';')[0..2]),
+						polygons :rawData[parseInt(rawData[0]) + 2 .. rawData.length]
+							.map((str)-> str.replace(/(\d+;)/, '').replace(/(;;|;,)/,"").split(","))
+							}]);
+					info = drawInfo.apply(_t);
+		
+					_t.hideLoader()	
+					if(!infoOnly)
+						addMouseHandler.apply(_t);
+					defer.resolve(_t) 
+					)
+				.fail ()-> 
+					_t.loadImage(_t.callbackPic).then (img)->
+						canvas = $("<canvas >")
+						canvas.attr({"class": "no_stone" ,"width": img.width, "height": img.height}) 
+						canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height)
+						_t.hideLoader()
+						_t.element.append(canvas)
+						defer.resolve(_t) 	
+					defer					
+			)
 		defer
 	first_init : ()->  
 		defer = $.Deferred()				
 		defer.resolve(@)
 		defer
 	showLoader : (_t)->
-		spinner = $('<div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>')
+		spinner = $('<div class="cut3d-spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>')
 		_t.element.append spinner	
 	hideLoader :()->
-		$('.spinner').hide()
+		$('.cut3d-spinner').hide()
 
 
 	play : () -> return		
@@ -216,17 +206,19 @@ class Threejs extends Viewer
 	drawMesh = (data) ->
 		setFaces = (points, geometry) ->
 			geometry.faces.push(new THREE.Face3(points[0], points[1], points[2]) )
-			if points.length != 3
-				points.splice(1, 1)
+			if points.length != 3				
+				points.splice(1, 1) 
 				setFaces(points, geometry)
 			geometry.computeFaceNormals()
 
 		geom = new THREE.Geometry() ;
+
 		
 		for vert in data.vertices
 			geom.vertices.push(new THREE.Vector3(vert[0] * scale, vert[1] * scale, vert[2] * scale) )
 		for vert in data.polygons
-			setFaces(vert, geom)
+			if(vert.length > 1)
+				setFaces(vert, geom)
 		
 		mesh = new THREE.Mesh(geom, @material) ;
 		mesh.material.opacity = 1
@@ -240,13 +232,14 @@ class Threejs extends Viewer
 		edges.position.setZ(100)
 		edges.updateMatrix()
 		mesh
-	rotation = (obj) ->
+	rotation = (obj) ->		
 		obj.rotation.x = Math.PI / 2
+		#obj.rotation.z = -8.3; TODO - take the value from lengthDirection
 		obj
 	createScene = ()->
 		scene = new THREE.Scene() ;
 		sceneInfo = new THREE.Scene() ;
-		camera = new THREE.OrthographicCamera(13000 / -2.5, 13000 / 2.5, 13000  / 2.5, 13000  / - 2.5, - 10000, 10000) ;
+		camera = new THREE.OrthographicCamera(12000 / -2.5, 12000 / 2.5, 12000  / 2.5, 12000  / - 2.5, - 10000, 10000) ;
 		scene.add(camera) ;
 		camera.position.set(0, 0, 5000) 		
 		camera.lookAt(scene.position) 
@@ -275,18 +268,18 @@ class Threejs extends Viewer
 			color: 0xcccccc, 
 			# side:THREE.BackSide, 
 			# depthWrite: false, 
-			# depthTest: false
+			# depthTest: false  
 		})
 		render()
 	projectSceneToInfo = (origin)->
-		origin.set(origin.x / (camera.right / cameraInfo.right),origin.y / (camera.right / cameraInfo.right),origin.z / (camera.right / cameraInfo.right))
+		origin.set(origin.x / (camera.right / cameraInfo.right), origin.y / (camera.top / cameraInfo.top),origin.z / (camera.right / cameraInfo.right))		
 		origin
 	drawArrow = (options)->
 		{name, origin, length, hex, topToButtom,data,dir,far} = options
 		xyFar = if topToButtom then 'x' else 'y';
 		origin["set"+  xyFar.toUpperCase()](origin[xyFar] * far)
-		origin = projectSceneToInfo(origin)
-		# origin.set(origin.x / (camera.right / cameraInfo.right),origin.y / (camera.right / cameraInfo.right),origin.z / (camera.right / cameraInfo.right))
+		origin = projectSceneToInfo(origin)		
+				
 		textObj = drawText({
 			texts : data,
 			position : origin,
@@ -296,7 +289,7 @@ class Threejs extends Viewer
 		infoObj.name = "info"
 		xy = if topToButtom then 'y' else 'x';
 		gap = 5
-		if topToButtom
+		if topToButtom			
 			textObj.children.forEach((v)->
 				v.position.setX((if origin.x > 0 then gap else -1 * gap) + origin.x + v.geometry.boundingBox[if origin.x > 0 then "max" else "min"].x)
 			)
@@ -305,13 +298,20 @@ class Threejs extends Viewer
 			gap += Math.max.apply {}, textObj.children.map((v)-> v.geometry.boundingBox.max[xy])
 			gap -= Math.min.apply {}, textObj.children.map((v)-> v.geometry.boundingBox.min[xy])
 		# gap = (textObj.geometry.boundingBox.max[xy] - textObj.geometry.boundingBox.min[xy]) + 10
-		length = (if data['mm'] then data['mm'] else data['height-mm'])  / 2 * 1000 /  (camera.right / cameraInfo.right) - gap / 2 
+		length = (if data['mm'] then data['mm']  else data['height-mm'])  / 2 * 1000 /  (camera.right / cameraInfo.right) - gap / 2 
+		length = length * scale
 		infoObj.add(textObj)
+
+		#draw half arrow
 		infoObj.add(new THREE.ArrowHelper(dir, origin.clone()["set" + xy.toUpperCase()](origin[xy] + gap/2), length, hex ,5,5))
+
+		#set arrow direction (right -> left /left -> right / top -> bottom / bottom -> top)
 		if topToButtom
 			dir.setY(dir.y * -1)
 		else
 			dir.setX(dir.x * -1)
+
+		#draw the arrow second half
 		infoObj.add(new THREE.ArrowHelper(dir, origin.clone()["set" + xy.toUpperCase()](origin[xy] -  gap/2), length, hex ,5,5))
 		infoObj
 	drawText = (options)-> 
@@ -327,7 +327,7 @@ class Threejs extends Viewer
 				when val.indexOf("deg") > -1 then options.texts[val].toFixed(options.toFixed || 1) + "°" 
 
 			textGeom = new THREE.TextGeometry( text , {
-				size: 10,
+				size: if (6 + (scale * 4)) > 10 then 10 else (6 + (scale * 4)), 
 				font: "gentilis", 
 				wieght : "bold"
 			});
@@ -367,38 +367,41 @@ class Threejs extends Viewer
 				dir :  new THREE.Vector3( 1, 0, 0 )
 				far :  1.25
 			}));
+
+		pavilionEndY = info['Total Depth']['mm'] * 1000 / 2		
+		girdleY = pavilionEndY - (info['Crown']['height-mm'] * 1000)
+		
 		# draw Crown
 		Crown =  new THREE.Vector3( 
 			mesh.geometry.boundingBox.max.x ,
-			mesh.geometry.boundingBox.max.z - info['Crown']['height-mm'] * 1000 / 2,
+			(girdleY + (info['Crown']['height-mm'] * 1000 / 2)) * scale,
 			0 )
 		infoObj.add(drawArrow({
 				origin  : Crown.clone()
 				hex : hex, 
 				topToButtom : true,
 				data : info['Crown']
-				# dir :  new THREE.Vector3( mesh.geometry.boundingBox.max.x , Crown +  1 , 0 )
 				dir :  Crown.clone().setY(Crown.y + 1)
 				far : 1.05
 			})) 
 		# draw Pavilion
+		
 		Pavilion =  new THREE.Vector3( 
 			mesh.geometry.boundingBox.max.x,
-			mesh.geometry.boundingBox.min.z + info['Pavilion']['height-mm'] * 1000 / 2,
+			(girdleY- pavilionEndY) / 2 * scale,
 			0);
 		infoObj.add(drawArrow({
 				origin  : Pavilion.clone()
 				hex : hex, 
 				topToButtom : true,
 				data : info['Pavilion']
-				# dir :  new THREE.Vector3( mesh.geometry.boundingBox.max.x , Pavilion *  -1 , 0 )
 				dir : Pavilion.clone().setY(Pavilion.y * -1)
 				far : 1.05
 			}))
 		# draw TotalDepth
 		TotalDepth =  new THREE.Vector3( 
 			mesh.geometry.boundingBox.min.x,
-			mesh.geometry.boundingBox.min.z + info['Total Depth']['mm'] * 1000 / 2, 
+			0,
 			0 
 			)
 		infoObj.add(drawArrow({
@@ -406,7 +409,6 @@ class Threejs extends Viewer
 				hex : hex, 
 				topToButtom : true,
 				data : info['Total Depth']
-				# dir :  new THREE.Vector3( mesh.geometry.boundingBox.min.x , TotalDepth +  1 , 0 )
 				dir :  TotalDepth.clone().setY(TotalDepth.y + 1)
 				far : 1.05
 			}))
@@ -418,10 +420,12 @@ class Threejs extends Viewer
 				toFixed : 2
 			}))
 		# draw Crown angel-deg
+		rightTableSizeX = info['Table Size']['mm'] * 1000 / 2
+		rightLengthX = info['Length']['mm'] * 1000 / 2
 		infoObj.add(drawText({
 				texts : info['Crown']
 				position : projectSceneToInfo(new THREE.Vector3( 
-					(info['Table Size']['mm']  + (info['Length']['mm'] - info['Table Size']['mm']) / 2 ) * 500 * 1.2, 
+					(rightTableSizeX +  (7 * (rightLengthX - rightTableSizeX)) / 8) * scale, 
 					Crown.y * 1.05, 
 					0 
 					)),
@@ -434,7 +438,7 @@ class Threejs extends Viewer
 		infoObj.add(drawText({
 				texts : info['Pavilion']
 				position : projectSceneToInfo(new THREE.Vector3( 
-					(info['Length']['mm'] / 2) * 500 * 1.2, 
+					(2 * rightLengthX / 3) * scale,  
 					Pavilion.y * 1.1, 
 					0 
 					)),
@@ -444,7 +448,7 @@ class Threejs extends Viewer
 		# draw Girdle Thickness-mm
 		GirdleTopTrue = new THREE.Vector3( 
 						mesh.geometry.boundingBox.min.x * 1.05, 
-						Crown.y - info['Crown']['height-mm'] * 500, 
+						girdleY  * scale,
 						0
 					)
 		GirdleTop = projectSceneToInfo(GirdleTopTrue.clone())
@@ -479,7 +483,7 @@ class Threejs extends Viewer
 		# draw Girdle Thickness-percentages
 		GirdleBottmTrue = new THREE.Vector3( 
 						mesh.geometry.boundingBox.min.x * 1.05, 
-						Pavilion.y + info['Pavilion']['height-mm'] * 500, 
+						(girdleY - (info['Girdle']['Thickness-mm'] * 1000)) * scale,
 						0
 					)
 		GirdleBottm = projectSceneToInfo(GirdleBottmTrue.clone())
