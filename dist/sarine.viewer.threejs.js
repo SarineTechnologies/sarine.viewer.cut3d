@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.12.0 -  Thursday, November 26th, 2015, 3:36:17 PM 
+sarine.viewer.threejs - v0.12.0 -  Thursday, November 26th, 2015, 4:14:33 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -96,48 +96,64 @@ sarine.viewer.threejs - v0.12.0 -  Thursday, November 26th, 2015, 3:36:17 PM
       var defer, _t;
       _t = this;
       defer = $.Deferred();
-      this.showLoader(_t);
-      loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
-        return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
-          var rawData;
-          createScene.apply(_t);
-          info = json[0];
-          rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
-            return s.length > 0;
+      if (shape !== 'round' && shape !== 'modifiedround') {
+        this.loadImage(this.callbackPic).then(function(img) {
+          var canvas;
+          canvas = $("<canvas >");
+          canvas.attr({
+            "class": "no_stone",
+            "width": img.width,
+            "height": img.height
           });
-          drawMesh.apply(_t, [
-            {
-              vertices: rawData.slice(1, +parseInt(rawData[0]) + 1 || 9e9).map(function(str) {
-                return str.replace(',', '').split(';').slice(0, 3);
-              }),
-              polygons: rawData.slice(parseInt(rawData[0]) + 2, +rawData.length + 1 || 9e9).map(function(str) {
-                return str.replace(/(\d+;)/, '').replace(/(;;|;,)/, "").split(",");
-              })
-            }
-          ]);
-          info = drawInfo.apply(_t);
-          _t.hideLoader();
-          if (!infoOnly) {
-            addMouseHandler.apply(_t);
-          }
+          canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
+          _t.element.append(canvas);
           return defer.resolve(_t);
-        }).fail(function() {
-          _t.loadImage(_t.callbackPic).then(function(img) {
-            var canvas;
-            canvas = $("<canvas >");
-            canvas.attr({
-              "class": "no_stone",
-              "width": img.width,
-              "height": img.height
-            });
-            canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
-            _t.hideLoader();
-            _t.element.append(canvas);
-            return defer.resolve(_t);
-          });
-          return defer;
         });
-      });
+        defer;
+      } else {
+        this.showLoader(_t);
+        loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
+          return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
+            var rawData;
+            createScene.apply(_t);
+            info = json[0];
+            rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
+              return s.length > 0;
+            });
+            drawMesh.apply(_t, [
+              {
+                vertices: rawData.slice(1, +parseInt(rawData[0]) + 1 || 9e9).map(function(str) {
+                  return str.replace(',', '').split(';').slice(0, 3);
+                }),
+                polygons: rawData.slice(parseInt(rawData[0]) + 2, +rawData.length + 1 || 9e9).map(function(str) {
+                  return str.replace(/(\d+;)/, '').replace(/(;;|;,)/, "").split(",");
+                })
+              }
+            ]);
+            info = drawInfo.apply(_t);
+            _t.hideLoader();
+            if (!infoOnly) {
+              addMouseHandler.apply(_t);
+            }
+            return defer.resolve(_t);
+          }).fail(function() {
+            _t.loadImage(_t.callbackPic).then(function(img) {
+              var canvas;
+              canvas = $("<canvas >");
+              canvas.attr({
+                "class": "no_stone",
+                "width": img.width,
+                "height": img.height
+              });
+              canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
+              _t.hideLoader();
+              _t.element.append(canvas);
+              return defer.resolve(_t);
+            });
+            return defer;
+          });
+        });
+      }
       return defer;
     };
 
