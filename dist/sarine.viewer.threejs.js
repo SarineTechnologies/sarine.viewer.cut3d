@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM 
+sarine.viewer.threejs - v0.12.0 -  Thursday, November 26th, 2015, 3:36:17 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -96,65 +96,48 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
       var defer, _t;
       _t = this;
       defer = $.Deferred();
-      if (shape !== 'round' && shape !== 'modifiedround') {
-        this.loadImage(this.callbackPic).then(function(img) {
-          var canvas;
-          canvas = $("<canvas >");
-          canvas.attr({
-            "class": "no_stone",
-            "width": img.width,
-            "height": img.height
+      this.showLoader(_t);
+      loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
+        return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
+          var rawData;
+          createScene.apply(_t);
+          info = json[0];
+          rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
+            return s.length > 0;
           });
-          canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
-          _t.element.append(canvas);
-          return defer.resolve(_t);
-        });
-        defer;
-      } else {
-        this.showLoader(_t);
-        loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
-          return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
-            var rawData;
-            createScene.apply(_t);
-            info = json[0];
-            rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
-              return s.length > 0;
-            });
-            drawMesh.apply(_t, [
-              {
-                vertices: rawData.slice(1, +parseInt(rawData[0]) + 1 || 9e9).map(function(str) {
-                  return str.replace(',', '').split(';').slice(0, 3);
-                }),
-                polygons: rawData.slice(parseInt(rawData[0]) + 2, +rawData.length + 1 || 9e9).map(function(str) {
-                  return str.replace(/(\d+;)/, '').replace(/(;;|;,)/, "").split(",");
-                })
-              }
-            ]);
-            info = drawInfo.apply(_t);
-            console.log("hide loader");
-            _t.hideLoader();
-            if (!infoOnly) {
-              addMouseHandler.apply(_t);
+          drawMesh.apply(_t, [
+            {
+              vertices: rawData.slice(1, +parseInt(rawData[0]) + 1 || 9e9).map(function(str) {
+                return str.replace(',', '').split(';').slice(0, 3);
+              }),
+              polygons: rawData.slice(parseInt(rawData[0]) + 2, +rawData.length + 1 || 9e9).map(function(str) {
+                return str.replace(/(\d+;)/, '').replace(/(;;|;,)/, "").split(",");
+              })
             }
-            return defer.resolve(_t);
-          }).fail(function() {
-            _t.loadImage(_t.callbackPic).then(function(img) {
-              var canvas;
-              canvas = $("<canvas >");
-              canvas.attr({
-                "class": "no_stone",
-                "width": img.width,
-                "height": img.height
-              });
-              canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
-              _t.hideLoader();
-              _t.element.append(canvas);
-              return defer.resolve(_t);
+          ]);
+          info = drawInfo.apply(_t);
+          _t.hideLoader();
+          if (!infoOnly) {
+            addMouseHandler.apply(_t);
+          }
+          return defer.resolve(_t);
+        }).fail(function() {
+          _t.loadImage(_t.callbackPic).then(function(img) {
+            var canvas;
+            canvas = $("<canvas >");
+            canvas.attr({
+              "class": "no_stone",
+              "width": img.width,
+              "height": img.height
             });
-            return defer;
+            canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
+            _t.hideLoader();
+            _t.element.append(canvas);
+            return defer.resolve(_t);
           });
+          return defer;
         });
-      }
+      });
       return defer;
     };
 
@@ -167,12 +150,12 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
 
     Threejs.prototype.showLoader = function(_t) {
       var spinner;
-      spinner = $('<div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>');
+      spinner = $('<div class="cut3d-spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>');
       return _t.element.append(spinner);
     };
 
     Threejs.prototype.hideLoader = function() {
-      return $('.spinner').hide();
+      return $('.cut3d-spinner').hide();
     };
 
     Threejs.prototype.play = function() {};
@@ -294,7 +277,9 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
       _ref1 = data.polygons;
       for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
         vert = _ref1[_j];
-        setFaces(vert, geom);
+        if (vert.length > 1) {
+          setFaces(vert, geom);
+        }
       }
       mesh = new THREE.Mesh(geom, this.material);
       mesh.material.opacity = 1;
@@ -318,7 +303,7 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
     createScene = function() {
       scene = new THREE.Scene();
       sceneInfo = new THREE.Scene();
-      camera = new THREE.OrthographicCamera(13000 / -2.5, 13000 / 2.5, 13000 / 2.5, 13000 / -2.5, -10000, 10000);
+      camera = new THREE.OrthographicCamera(12000 / -2.5, 12000 / 2.5, 12000 / 2.5, 12000 / -2.5, -10000, 10000);
       scene.add(camera);
       camera.position.set(0, 0, 5000);
       camera.lookAt(scene.position);
@@ -354,7 +339,7 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
     };
 
     projectSceneToInfo = function(origin) {
-      origin.set(origin.x / (camera.right / cameraInfo.right), origin.y / (camera.right / cameraInfo.right), origin.z / (camera.right / cameraInfo.right));
+      origin.set(origin.x / (camera.right / cameraInfo.right), origin.y / (camera.top / cameraInfo.top), origin.z / (camera.right / cameraInfo.right));
       return origin;
     };
 
@@ -389,6 +374,7 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
         }));
       }
       length = (data['mm'] ? data['mm'] : data['height-mm']) / 2 * 1000 / (camera.right / cameraInfo.right) - gap / 2;
+      length = length * scale;
       infoObj.add(textObj);
       infoObj.add(new THREE.ArrowHelper(dir, origin.clone()["set" + xy.toUpperCase()](origin[xy] + gap / 2), length, hex, 5, 5));
       if (topToButtom) {
@@ -421,7 +407,7 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
             }
           })();
           textGeom = new THREE.TextGeometry(text, {
-            size: 10,
+            size: (6 + (scale * 4)) > 10 ? 10 : 6 + (scale * 4),
             font: "gentilis",
             wieght: "bold"
           });
@@ -446,7 +432,7 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
     };
 
     drawInfo = function(hex) {
-      var Crown, GirdleBottm, GirdleBottmTrue, GirdleTop, GirdleTopTrue, Pavilion, ThicknessMmText, ThicknessPercentageText, TotalDepth, geometry, grildFarX, grildFarY, infoObj, line, material;
+      var Crown, GirdleBottm, GirdleBottmTrue, GirdleTop, GirdleTopTrue, Pavilion, ThicknessMmText, ThicknessPercentageText, TotalDepth, geometry, girdleY, grildFarX, grildFarY, infoObj, line, material, pavilionEndY, rightLengthX, rightTableSizeX;
       hex = hex || 0x000000;
       infoObj = new THREE.Object3D();
       infoObj.name = "info";
@@ -466,7 +452,9 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
         dir: new THREE.Vector3(1, 0, 0),
         far: 1.25
       }));
-      Crown = new THREE.Vector3(mesh.geometry.boundingBox.max.x, mesh.geometry.boundingBox.max.z - info['Crown']['height-mm'] * 1000 / 2, 0);
+      pavilionEndY = info['Total Depth']['mm'] * 1000 / 2;
+      girdleY = pavilionEndY - (info['Crown']['height-mm'] * 1000);
+      Crown = new THREE.Vector3(mesh.geometry.boundingBox.max.x, (girdleY + (info['Crown']['height-mm'] * 1000 / 2)) * scale, 0);
       infoObj.add(drawArrow({
         origin: Crown.clone(),
         hex: hex,
@@ -475,7 +463,7 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
         dir: Crown.clone().setY(Crown.y + 1),
         far: 1.05
       }));
-      Pavilion = new THREE.Vector3(mesh.geometry.boundingBox.max.x, mesh.geometry.boundingBox.min.z + info['Pavilion']['height-mm'] * 1000 / 2, 0);
+      Pavilion = new THREE.Vector3(mesh.geometry.boundingBox.max.x, (girdleY - pavilionEndY) / 2 * scale, 0);
       infoObj.add(drawArrow({
         origin: Pavilion.clone(),
         hex: hex,
@@ -484,7 +472,7 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
         dir: Pavilion.clone().setY(Pavilion.y * -1),
         far: 1.05
       }));
-      TotalDepth = new THREE.Vector3(mesh.geometry.boundingBox.min.x, mesh.geometry.boundingBox.min.z + info['Total Depth']['mm'] * 1000 / 2, 0);
+      TotalDepth = new THREE.Vector3(mesh.geometry.boundingBox.min.x, 0, 0);
       infoObj.add(drawArrow({
         origin: TotalDepth.clone(),
         hex: hex,
@@ -499,9 +487,11 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
         names: ['percentages'],
         toFixed: 2
       }));
+      rightTableSizeX = info['Table Size']['mm'] * 1000 / 2;
+      rightLengthX = info['Length']['mm'] * 1000 / 2;
       infoObj.add(drawText({
         texts: info['Crown'],
-        position: projectSceneToInfo(new THREE.Vector3((info['Table Size']['mm'] + (info['Length']['mm'] - info['Table Size']['mm']) / 2) * 500 * 1.2, Crown.y * 1.05, 0)),
+        position: projectSceneToInfo(new THREE.Vector3((rightTableSizeX + (7 * (rightLengthX - rightTableSizeX)) / 8) * scale, Crown.y * 1.05, 0)),
         names: ['angel-deg'],
         toFixed: "0"
       }));
@@ -509,11 +499,11 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
       grildFarY = 0.1;
       infoObj.add(drawText({
         texts: info['Pavilion'],
-        position: projectSceneToInfo(new THREE.Vector3((info['Length']['mm'] / 2) * 500 * 1.2, Pavilion.y * 1.1, 0)),
+        position: projectSceneToInfo(new THREE.Vector3((2 * rightLengthX / 3) * scale, Pavilion.y * 1.1, 0)),
         names: ['angel-deg'],
         toFixed: "0"
       }));
-      GirdleTopTrue = new THREE.Vector3(mesh.geometry.boundingBox.min.x * 1.05, Crown.y - info['Crown']['height-mm'] * 500, 0);
+      GirdleTopTrue = new THREE.Vector3(mesh.geometry.boundingBox.min.x * 1.05, girdleY * scale, 0);
       GirdleTop = projectSceneToInfo(GirdleTopTrue.clone());
       ThicknessMmText = drawText({
         texts: info['Girdle'],
@@ -529,7 +519,7 @@ sarine.viewer.threejs - v0.12.0 -  Monday, November 23rd, 2015, 4:12:10 PM
       line = new THREE.Line(geometry, material);
       infoObj.add(ThicknessMmText);
       infoObj.add(line);
-      GirdleBottmTrue = new THREE.Vector3(mesh.geometry.boundingBox.min.x * 1.05, Pavilion.y + info['Pavilion']['height-mm'] * 500, 0);
+      GirdleBottmTrue = new THREE.Vector3(mesh.geometry.boundingBox.min.x * 1.05, (girdleY - (info['Girdle']['Thickness-mm'] * 1000)) * scale, 0);
       GirdleBottm = projectSceneToInfo(GirdleBottmTrue.clone());
       ThicknessPercentageText = drawText({
         texts: info['Girdle'],
