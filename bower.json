@@ -1,6 +1,6 @@
 {
   "name": "sarine.viewer.threejs",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "main": "dist/sarine.viewer.threejs.js",
   "ignore": [
     ".git",
