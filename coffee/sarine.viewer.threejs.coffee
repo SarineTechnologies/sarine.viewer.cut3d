@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.13.0 -  Thursday, November 26th, 2015, 4:20:01 PM 
+sarine.viewer.threejs - v0.13.0 -  Monday, November 30th, 2015, 11:23:09 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 class Threejs extends Viewer 
@@ -26,12 +26,16 @@ class Threejs extends Viewer
 	info = false;
 	edges = undefined;
 	shape = undefined;
+	cameraWidthHeight = undefined;
+	cameraNearFar = undefined;
 	
 	constructor: (options) -> 
 		super(options)
 		{color,font, infoOnly} = options   
 		color = color || 0xffffff
-		scale = 1 #TODO -set it if stone too big or too small
+		scale = 1
+		cameraWidthHeight = 12000
+		cameraNearFar = 10000
 		shape = options.stoneProperties.shape.toLowerCase()
 		@version = $(@element).data("version") || "v1" 
 		@viewersBaseUrl = stones[0].viewersBaseUrl
@@ -64,6 +68,8 @@ class Threejs extends Viewer
 			loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
 				()->					
 					$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "Info.json")).then((data,json) ->
+						mm = json[0]['Length']['mm']
+						scale = 0.0436 * mm * mm - 0.7119 * mm + 3.6648 #scale the stone to look always the same
 						createScene.apply(_t)
 						info = json[0]
 						rawData = data[0]
@@ -217,7 +223,7 @@ class Threejs extends Viewer
 	createScene = ()->
 		scene = new THREE.Scene() ;
 		sceneInfo = new THREE.Scene() ;
-		camera = new THREE.OrthographicCamera(12000 / -2.5, 12000 / 2.5, 12000  / 2.5, 12000  / - 2.5, - 10000, 10000) ;
+		camera = new THREE.OrthographicCamera(cameraWidthHeight / -2.5, cameraWidthHeight / 2.5, cameraWidthHeight  / 2.5, cameraWidthHeight  / - 2.5, - cameraNearFar, cameraNearFar) ;
 		scene.add(camera) ;
 		camera.position.set(0, 0, 5000) 		
 		camera.lookAt(scene.position) 
@@ -225,7 +231,7 @@ class Threejs extends Viewer
 		renderer = new THREE.WebGLRenderer({alpha: true ,logarithmicDepthBuffer: false , antialias : true} ) ;
 		renderer.autoClear = false;
 		canvasWidth = if @element.parent().height() > @element.parent().width() then @element.parent().width() else @element.parent().height();
-		cameraInfo = new THREE.OrthographicCamera(canvasWidth / -2, canvasWidth / 2, canvasWidth  / 2, canvasWidth  / - 2, - 10000, 10000) ;
+		cameraInfo = new THREE.OrthographicCamera(canvasWidth / -2, canvasWidth / 2, canvasWidth  / 2, canvasWidth  / - 2, - cameraNearFar, cameraNearFar) ;
 		sceneInfo.add(cameraInfo)
 
 		# create event for top, side and bottom on the canvas element
