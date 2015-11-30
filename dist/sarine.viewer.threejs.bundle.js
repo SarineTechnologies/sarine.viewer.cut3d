@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.13.0 -  Thursday, November 26th, 2015, 4:20:00 PM 
+sarine.viewer.threejs - v0.13.0 -  Monday, November 30th, 2015, 11:23:09 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -71,7 +71,7 @@ sarine.viewer.threejs - v0.13.0 -  Thursday, November 26th, 2015, 4:20:00 PM
   this.Viewer = Viewer;
 
   Threejs = (function(_super) {
-    var THREE, addMouseHandler, camera, cameraInfo, canvasWidth, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, edges, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, projectSceneToInfo, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, shape, url;
+    var THREE, addMouseHandler, camera, cameraInfo, cameraNearFar, cameraWidthHeight, canvasWidth, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, edges, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, projectSceneToInfo, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, shape, url;
 
     __extends(Threejs, _super);
 
@@ -121,11 +121,17 @@ sarine.viewer.threejs - v0.13.0 -  Thursday, November 26th, 2015, 4:20:00 PM
 
     shape = void 0;
 
+    cameraWidthHeight = void 0;
+
+    cameraNearFar = void 0;
+
     function Threejs(options) {
       Threejs.__super__.constructor.call(this, options);
       color = options.color, font = options.font, infoOnly = options.infoOnly;
       color = color || 0xffffff;
       scale = 1;
+      cameraWidthHeight = 12000;
+      cameraNearFar = 10000;
       shape = options.stoneProperties.shape.toLowerCase();
       this.version = $(this.element).data("version") || "v1";
       this.viewersBaseUrl = stones[0].viewersBaseUrl;
@@ -175,7 +181,9 @@ sarine.viewer.threejs - v0.13.0 -  Thursday, November 26th, 2015, 4:20:00 PM
         this.showLoader(_t);
         loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
           return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
-            var rawData;
+            var mm, rawData;
+            mm = json[0]['Length']['mm'];
+            scale = 0.0436 * mm * mm - 0.7119 * mm + 3.6648;
             createScene.apply(_t);
             info = json[0];
             rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
@@ -380,7 +388,7 @@ sarine.viewer.threejs - v0.13.0 -  Thursday, November 26th, 2015, 4:20:00 PM
     createScene = function() {
       scene = new THREE.Scene();
       sceneInfo = new THREE.Scene();
-      camera = new THREE.OrthographicCamera(12000 / -2.5, 12000 / 2.5, 12000 / 2.5, 12000 / -2.5, -10000, 10000);
+      camera = new THREE.OrthographicCamera(cameraWidthHeight / -2.5, cameraWidthHeight / 2.5, cameraWidthHeight / 2.5, cameraWidthHeight / -2.5, -cameraNearFar, cameraNearFar);
       scene.add(camera);
       camera.position.set(0, 0, 5000);
       camera.lookAt(scene.position);
@@ -391,7 +399,7 @@ sarine.viewer.threejs - v0.13.0 -  Thursday, November 26th, 2015, 4:20:00 PM
       });
       renderer.autoClear = false;
       canvasWidth = this.element.parent().height() > this.element.parent().width() ? this.element.parent().width() : this.element.parent().height();
-      cameraInfo = new THREE.OrthographicCamera(canvasWidth / -2, canvasWidth / 2, canvasWidth / 2, canvasWidth / -2, -10000, 10000);
+      cameraInfo = new THREE.OrthographicCamera(canvasWidth / -2, canvasWidth / 2, canvasWidth / 2, canvasWidth / -2, -cameraNearFar, cameraNearFar);
       sceneInfo.add(cameraInfo);
       $(renderer.domElement).on("top", function() {
         return mesh.rotation.x = Math.PI;
