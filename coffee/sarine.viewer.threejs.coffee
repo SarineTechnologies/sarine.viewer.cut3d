@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.14.0 -  Tuesday, December 1st, 2015, 8:33:56 AM 
+sarine.viewer.threejs - v0.14.0 -  Tuesday, December 1st, 2015, 9:56:59 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 class Threejs extends Viewer 
@@ -53,8 +53,8 @@ class Threejs extends Viewer
 	full_init : ()->
 		_t = @		
 		defer = $.Deferred() 
-		#temp support only for round/modifiedround
-		if (shape != 'round' &&  shape != 'modifiedround')
+		#temp support only for round/modifiedround and if webgl not supported
+		if ((shape != 'round' &&  shape != 'modifiedround') || !@webglDetect())
 			@loadImage(@callbackPic).then (img)->
 				canvas = $("<canvas >")
 				canvas.attr({"class": "no_stone" ,"width": img.width, "height": img.height}) 
@@ -114,6 +114,36 @@ class Threejs extends Viewer
 	hideLoader :()->
 		$('.cut3d-spinner').hide()
 
+	webglDetect : (return_context) ->
+	  if ! !window.WebGLRenderingContext
+	    canvas = document.createElement('canvas')
+	    names = [
+	      'webgl'
+	      'experimental-webgl'
+	      'moz-webgl'
+	      'webkit-3d'
+	    ]
+	    context = false
+	    i = 0
+	    while i < 4
+	      try
+	        context = canvas.getContext(names[i])
+	        if context and typeof context.getParameter == 'function'
+	          # WebGL is enabled
+	          if return_context
+	            # return WebGL object if the function's argument is present
+	            return {
+	              name: names[i]
+	              gl: context
+	            }
+	          # else, return just true
+	          return true
+	      catch e
+	      i++
+	    # WebGL is supported, but disabled
+	    return false
+	  # WebGL not supported
+	  false
 
 	play : () -> return		
 	stop : () -> return		
