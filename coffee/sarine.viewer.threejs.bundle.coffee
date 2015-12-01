@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.14.0 -  Monday, November 30th, 2015, 11:29:29 AM 
+sarine.viewer.threejs - v0.14.0 -  Tuesday, December 1st, 2015, 8:33:56 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -98,7 +98,9 @@ class Threejs extends Viewer
 		else
 			@showLoader(_t)
 			loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
-				()->					
+				()->		
+					cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css"	
+					$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', cssPath)
 					$.when($.get(_t.src  + "SRNSRX.srn"),$.getJSON(_t.src + "Info.json")).then((data,json) ->
 						mm = json[0]['Length']['mm']
 						scale = 0.0436 * mm * mm - 0.7119 * mm + 3.6648 #scale the stone to look always the same
