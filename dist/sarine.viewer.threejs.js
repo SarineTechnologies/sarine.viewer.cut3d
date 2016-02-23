@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.15.0 -  Tuesday, December 1st, 2015, 10:02:12 AM 
+sarine.viewer.threejs - v0.15.0 -  Tuesday, February 23rd, 2016, 11:31:51 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -247,7 +247,7 @@ sarine.viewer.threejs - v0.15.0 -  Tuesday, December 1st, 2015, 10:02:12 AM
     };
 
     addMouseHandler = function() {
-      var canvas, onDocumentTouchMove, onDocumentTouchStart, onMouseMove, onMousedown, onMouseup;
+      var canvas, containerElement, onDocumentTouchMove, onDocumentTouchStart, onMouseMove, onMousedown, onMouseup;
       canvas = renderer.domElement;
       onMouseMove = function(evt) {
         var deltaX, deltaY;
@@ -294,11 +294,12 @@ sarine.viewer.threejs - v0.15.0 -  Tuesday, December 1st, 2015, 10:02:12 AM
         };
       })(this);
       renderer.domElement.addEventListener("touchstart", onDocumentTouchStart, false);
-      document.getElementsByTagName("body")[0].addEventListener("touchend", onMouseup, false);
-      document.getElementsByTagName("body")[0].addEventListener("touchmove", onDocumentTouchMove, false);
-      document.getElementsByTagName("body")[0].addEventListener('mousemove', onMouseMove, false);
+      containerElement = document.getElementsByClassName('viewer cut3DView');
+      containerElement[0].addEventListener("touchend", onMouseup, false);
+      containerElement[0].addEventListener("touchmove", onDocumentTouchMove, false);
+      containerElement[0].addEventListener('mousemove', onMouseMove, false);
       renderer.domElement.addEventListener('mousedown', onMousedown, false);
-      return document.getElementsByTagName("body")[0].addEventListener('mouseup', onMouseup, false);
+      return containerElement[0].addEventListener('mouseup', onMouseup, false);
     };
 
     render = function() {
