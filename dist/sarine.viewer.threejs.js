@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.16.0 -  Tuesday, February 23rd, 2016, 11:39:30 AM 
+sarine.viewer.threejs - v0.16.0 -  Thursday, November 24th, 2016, 2:41:48 PM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -125,7 +125,8 @@ sarine.viewer.threejs - v0.16.0 -  Tuesday, February 23rd, 2016, 11:39:30 AM
             type: 'text/css',
             rel: 'stylesheet'
           }).attr('href', cssPath);
-          return $.when($.get(_t.src + "SRNSRX.srn"), $.getJSON(_t.src + "Info.json")).then(function(data, json) {
+          this.fullSrc = _t.src.indexOf('##FILE_NAME##') !== -1 ? _t.src.replace('##FILE_NAME##', '') : _t.src;
+          return $.when($.get(this.fullSrc + "SRNSRX.srn"), $.getJSON(this.fullSrc + "Info.json")).then(function(data, json) {
             var mm, rawData;
             mm = json[0]['Length']['mm'];
             scale = 0.0436 * mm * mm - 0.7119 * mm + 3.6648;
