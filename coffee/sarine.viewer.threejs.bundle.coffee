@@ -1,5 +1,5 @@
 ###!
-sarine.viewer.threejs - v0.17.0 -  Thursday, November 24th, 2016, 3:56:00 PM 
+sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
 ###
 
@@ -101,8 +101,9 @@ class Threejs extends Viewer
 				()->		
 					cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css"	
 					$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', cssPath)
-					@fullSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', '') else _t.src
-					$.when($.get(@fullSrc  + "SRNSRX.srn"),$.getJSON(@fullSrc + "Info.json")).then((data,json) ->
+					@fullSrnSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'SRNSRX.srn') else _t.src
+					@fullJsonSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'Info.json') else _t.src
+					$.when($.get(@fullSrnSrc),$.getJSON(@fullJsonSrc)).then((data,json) ->
 						mm = json[0]['Length']['mm']
 						scale = 0.0436 * mm * mm - 0.7119 * mm + 3.6648 #scale the stone to look always the same
 						createScene.apply(_t)
