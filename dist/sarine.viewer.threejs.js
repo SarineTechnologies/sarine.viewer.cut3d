@@ -1,6 +1,6 @@
 
 /*!
-sarine.viewer.threejs - v0.17.0 -  Thursday, November 24th, 2016, 3:56:00 PM 
+sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
@@ -125,8 +125,9 @@ sarine.viewer.threejs - v0.17.0 -  Thursday, November 24th, 2016, 3:56:00 PM
             type: 'text/css',
             rel: 'stylesheet'
           }).attr('href', cssPath);
-          this.fullSrc = _t.src.indexOf('##FILE_NAME##') !== -1 ? _t.src.replace('##FILE_NAME##', '') : _t.src;
-          return $.when($.get(this.fullSrc + "SRNSRX.srn"), $.getJSON(this.fullSrc + "Info.json")).then(function(data, json) {
+          this.fullSrnSrc = _t.src.indexOf('##FILE_NAME##') !== -1 ? _t.src.replace('##FILE_NAME##', 'SRNSRX.srn') : _t.src;
+          this.fullJsonSrc = _t.src.indexOf('##FILE_NAME##') !== -1 ? _t.src.replace('##FILE_NAME##', 'Info.json') : _t.src;
+          return $.when($.get(this.fullSrnSrc), $.getJSON(this.fullJsonSrc)).then(function(data, json) {
             var mm, rawData;
             mm = json[0]['Length']['mm'];
             scale = 0.0436 * mm * mm - 0.7119 * mm + 3.6648;
