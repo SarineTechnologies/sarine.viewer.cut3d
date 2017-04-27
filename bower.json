@@ -1,7 +1,7 @@
 {
-  "name": "sarine.viewer.threejs",
-  "version": "0.17.0",
-  "main": "dist/sarine.viewer.threejs.js",
+  "name": "sarine.viewer.cut3d",
+  "version": "0.17.1",
+  "main": "dist/sarine.viewer.cut3d.js",
   "ignore": [
     ".git",
     "node_modules",

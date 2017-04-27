@@ -1,11 +1,11 @@
 
 /*!
-sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM 
+sarine.viewer.cut3d - v0.17.1 -  Thursday, April 27th, 2017, 10:48:08 AM 
  The source code, name, and look and feel of the software are Copyright © 2015 Sarine Technologies Ltd. All Rights Reserved. You may not duplicate, copy, reuse, sell or otherwise exploit any portion of the code, content or visual design elements without express written permission from Sarine Technologies Ltd. The terms and conditions of the sarine.com website (http://sarine.com/terms-and-conditions/) apply to the access and use of this software.
  */
 
 (function() {
-  var Threejs, Viewer,
+  var Cut3d, Viewer,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -70,10 +70,10 @@ sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM
 
   this.Viewer = Viewer;
 
-  Threejs = (function(_super) {
+  Cut3d = (function(_super) {
     var THREE, addMouseHandler, camera, cameraInfo, cameraNearFar, cameraWidthHeight, canvasWidth, color, controls, createScene, drawArrow, drawInfo, drawMesh, drawText, edges, font, fontSize, info, infoOnly, loadScript, mesh, mouseDown, mouseX, mouseY, projectSceneToInfo, render, renderer, rotateScene, rotation, scale, scene, sceneInfo, shape, url;
 
-    __extends(Threejs, _super);
+    __extends(Cut3d, _super);
 
     THREE = void 0;
 
@@ -87,7 +87,7 @@ sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM
 
     mesh = void 0;
 
-    Threejs.material = void 0;
+    Cut3d.material = void 0;
 
     camera = void 0;
 
@@ -125,8 +125,8 @@ sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM
 
     cameraNearFar = void 0;
 
-    function Threejs(options) {
-      Threejs.__super__.constructor.call(this, options);
+    function Cut3d(options) {
+      Cut3d.__super__.constructor.call(this, options);
       color = options.color, font = options.font, infoOnly = options.infoOnly;
       color = color || 0xffffff;
       scale = 1;
@@ -137,19 +137,19 @@ sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM
       this.viewersBaseUrl = stones[0].viewersBaseUrl;
     }
 
-    Threejs.prototype.getScene = function() {
+    Cut3d.prototype.getScene = function() {
       return scene;
     };
 
-    Threejs.prototype.getSceneInfo = function() {
+    Cut3d.prototype.getSceneInfo = function() {
       return sceneInfo;
     };
 
-    Threejs.prototype.getRenderer = function() {
+    Cut3d.prototype.getRenderer = function() {
       return renderer;
     };
 
-    Threejs.prototype.convertElement = function() {
+    Cut3d.prototype.convertElement = function() {
       this.element.css({
         width: '100%',
         height: '100%',
@@ -159,106 +159,90 @@ sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM
       return this.element;
     };
 
-    Threejs.prototype.full_init = function() {
+    Cut3d.prototype.full_init = function() {
       var defer, _t;
       _t = this;
       defer = $.Deferred();
-      if ((shape !== 'round' && shape !== 'modifiedround') || !this.webglDetect()) {
-        this.loadImage(this.callbackPic).then(function(img) {
-          var canvas;
-          canvas = $("<canvas >");
-          canvas.attr({
-            "class": "no_stone",
-            "width": img.width,
-            "height": img.height
+      this.showLoader(_t);
+      loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
+        var cssPath;
+        cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css";
+        $('<link>').appendTo('head').attr({
+          type: 'text/css',
+          rel: 'stylesheet'
+        }).attr('href', cssPath);
+        this.fullSrnSrc = _t.src.indexOf('##FILE_NAME##') !== -1 ? _t.src.replace('##FILE_NAME##', 'SRNSRX.srn') : _t.src;
+        this.fullJsonSrc = _t.src.indexOf('##FILE_NAME##') !== -1 ? _t.src.replace('##FILE_NAME##', 'Info.json') : _t.src;
+        return $.when($.get(this.fullSrnSrc), $.getJSON(this.fullJsonSrc)).then(function(data, json) {
+          var mm, rawData;
+          mm = json[0]['Length']['mm'];
+          console.log(json[0]);
+          scale = 1;
+          createScene.apply(_t);
+          info = json[0];
+          rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
+            return s.length > 0;
           });
-          canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
-          _t.element.append(canvas);
-          return defer.resolve(_t);
-        });
-        defer;
-      } else {
-        this.showLoader(_t);
-        loadScript(this.viewersBaseUrl + "atomic/" + this.version + "/assets/three.bundle.js").then(function() {
-          var cssPath;
-          cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css";
-          $('<link>').appendTo('head').attr({
-            type: 'text/css',
-            rel: 'stylesheet'
-          }).attr('href', cssPath);
-          this.fullSrnSrc = _t.src.indexOf('##FILE_NAME##') !== -1 ? _t.src.replace('##FILE_NAME##', 'SRNSRX.srn') : _t.src;
-          this.fullJsonSrc = _t.src.indexOf('##FILE_NAME##') !== -1 ? _t.src.replace('##FILE_NAME##', 'Info.json') : _t.src;
-          return $.when($.get(this.fullSrnSrc), $.getJSON(this.fullJsonSrc)).then(function(data, json) {
-            var mm, rawData;
-            mm = json[0]['Length']['mm'];
-            scale = 0.0436 * mm * mm - 0.7119 * mm + 3.6648;
-            createScene.apply(_t);
-            info = json[0];
-            rawData = data[0].replace(/\s/g, "^").match(/Mesh(.*?)}/)[0].replace(/[Mesh|{|}]/g, "").split("^").filter(function(s) {
-              return s.length > 0;
-            });
-            drawMesh.apply(_t, [
-              {
-                vertices: rawData.slice(1, +parseInt(rawData[0]) + 1 || 9e9).map(function(str) {
-                  return str.replace(',', '').split(';').slice(0, 3);
-                }),
-                polygons: rawData.slice(parseInt(rawData[0]) + 2, +rawData.length + 1 || 9e9).map(function(str) {
-                  return str.replace(/(\d+;)/, '').replace(/(;;|;,)/, "").split(",");
-                })
-              }
-            ]);
-            info = drawInfo.apply(_t);
-            _t.hideLoader();
-            if (!infoOnly) {
-              addMouseHandler.apply(_t);
+          drawMesh.apply(_t, [
+            {
+              vertices: rawData.slice(1, +parseInt(rawData[0]) + 1 || 9e9).map(function(str) {
+                return str.replace(',', '').split(';').slice(0, 3);
+              }),
+              polygons: rawData.slice(parseInt(rawData[0]) + 2, +rawData.length + 1 || 9e9).map(function(str) {
+                return str.replace(/(\d+;)/, '').replace(/(;;|;,)/, "").split(",");
+              })
             }
-            return defer.resolve(_t);
-          }).fail(function() {
-            _t.loadImage(_t.callbackPic).then(function(img) {
-              var canvas;
-              canvas = $("<canvas >");
-              canvas.attr({
-                "class": "no_stone",
-                "width": img.width,
-                "height": img.height
-              });
-              canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
-              _t.hideLoader();
-              _t.element.append(canvas);
-              return defer.resolve(_t);
+          ]);
+          _t.hideLoader();
+          if (!infoOnly) {
+            addMouseHandler.apply(_t);
+          }
+          return defer.resolve(_t);
+        }).fail(function() {
+          _t.loadImage(_t.callbackPic).then(function(img) {
+            var canvas;
+            canvas = $("<canvas >");
+            canvas.attr({
+              "class": "no_stone",
+              "width": img.width,
+              "height": img.height
             });
-            return defer;
+            canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height);
+            _t.hideLoader();
+            _t.element.append(canvas);
+            return defer.resolve(_t);
           });
+          return defer;
         });
-      }
+      });
       return defer;
     };
 
-    Threejs.prototype.first_init = function() {
+    Cut3d.prototype.first_init = function() {
       var defer;
       defer = $.Deferred();
       defer.resolve(this);
       return defer;
     };
 
-    Threejs.prototype.showLoader = function(_t) {
+    Cut3d.prototype.showLoader = function(_t) {
       var spinner;
       spinner = $('<div class="cut3d-spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>');
       return _t.element.append(spinner);
     };
 
-    Threejs.prototype.hideLoader = function() {
+    Cut3d.prototype.hideLoader = function() {
       return $('.cut3d-spinner').hide();
     };
 
-    Threejs.prototype.webglDetect = function(return_context) {
+    Cut3d.prototype.webglDetect = function(return_context) {
       var canvas, context, e, i, names;
       if (!!window.WebGLRenderingContext) {
         canvas = document.createElement('canvas');
         names = ['webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
         context = false;
         i = 0;
-        while (i < 4) {
+        while (i < names.length) {
           try {
             context = canvas.getContext(names[i]);
             if (context && typeof context.getParameter === 'function') {
@@ -280,9 +264,9 @@ sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM
       return false;
     };
 
-    Threejs.prototype.play = function() {};
+    Cut3d.prototype.play = function() {};
 
-    Threejs.prototype.stop = function() {};
+    Cut3d.prototype.stop = function() {};
 
     loadScript = function(url) {
       var defer, onload, s, _t;
@@ -663,10 +647,10 @@ sarine.viewer.threejs - v0.17.0 -  Monday, April 24th, 2017, 11:23:43 AM
       return void 0;
     };
 
-    return Threejs;
+    return Cut3d;
 
   })(Viewer);
 
-  this.Threejs = Threejs;
+  this.Cut3d = Cut3d;
 
 }).call(this);
