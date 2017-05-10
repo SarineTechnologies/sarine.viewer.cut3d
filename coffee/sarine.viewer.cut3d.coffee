@@ -60,8 +60,8 @@ class Cut3d extends Viewer
 		#	defer
 		#end of temp
 		#else
-		@showLoader(_t)
-		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
+		# @showLoader(_t)
+		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.min.js").then( 
 			()->		
 				cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css"	
 				$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', cssPath)
@@ -69,7 +69,6 @@ class Cut3d extends Viewer
 				@fullJsonSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'Info.json') else _t.src
 				$.when($.get(@fullSrnSrc),$.getJSON(@fullJsonSrc)).then((data,json) ->
 					mm = json[0]['Length']['mm']
-					console.log json[0]
 					scale = 1 # 0.0436 * mm * mm - 0.7119 * mm + 3.6648 #scale the stone to look always the same
 					createScene.apply(_t)
 					info = json[0]
@@ -85,9 +84,9 @@ class Cut3d extends Viewer
 						polygons :rawData[parseInt(rawData[0]) + 2 .. rawData.length]
 							.map((str)-> str.replace(/(\d+;)/, '').replace(/(;;|;,)/,"").split(","))
 							}]);
-					#info = drawInfo.apply(_t);
+					# info = drawInfo.apply(_t);
 		
-					_t.hideLoader()	
+					# _t.hideLoader()	
 					if(!infoOnly)
 						addMouseHandler.apply(_t);
 					defer.resolve(_t) 
@@ -97,7 +96,7 @@ class Cut3d extends Viewer
 						canvas = $("<canvas >")
 						canvas.attr({"class": "no_stone" ,"width": img.width, "height": img.height}) 
 						canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height)
-						_t.hideLoader()
+						# _t.hideLoader()
 						_t.element.append(canvas)
 						defer.resolve(_t) 	
 					defer					
@@ -107,11 +106,11 @@ class Cut3d extends Viewer
 		defer = $.Deferred()				
 		defer.resolve(@)
 		defer
-	showLoader : (_t)->
-		spinner = $('<div class="cut3d-spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>')
-		_t.element.append spinner	
-	hideLoader :()->
-		$('.cut3d-spinner').hide()
+	# showLoader : (_t)->
+	#	spinner = $('<div class="cut3d-spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>')
+	#	_t.element.append spinner	
+	#hideLoader :()->
+	#	$('.cut3d-spinner').hide()
 
 	webglDetect : (return_context) ->
 	  if ! !window.WebGLRenderingContext
@@ -148,8 +147,9 @@ class Cut3d extends Viewer
 	stop : () -> return		
 	loadScript = (url)->
 		onload = ()->
-			THREE = GetTHREE(); 			 
+			THREE = window.THREE # GetTHREE(); 			 
 			defer.resolve(_t);
+						
 		_t = @
 		defer = $.Deferred()
 		if($("[src='" + url + "']")[0])
@@ -247,6 +247,7 @@ class Cut3d extends Viewer
 		scene.add(rotation(edges))
 		edges.position.setZ(100)
 		edges.updateMatrix()
+		# console.log "data.mesh", data, mesh
 		mesh
 	rotation = (obj) ->		
 		obj.rotation.x = Math.PI / 2

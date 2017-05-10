@@ -49,7 +49,7 @@ module.exports = function(grunt) {
         }
     });
     
-    grunt.registerTask('bundle', [
+    grunt.registerTask('bundle', [ 
         'clean:build',
         'coffee',// Compile CoffeeScript files to JavaScript + concat + map
         'uglify',//min + banner + remove comments + map    
