@@ -24,7 +24,7 @@ class Cut3d extends Viewer
 	shape = undefined;
 	cameraWidthHeight = undefined;
 	cameraNearFar = undefined;
-	
+
 	constructor: (options) -> 
 		super(options)
 		{color, font, infoOnly} = options   
@@ -69,14 +69,16 @@ class Cut3d extends Viewer
 				cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css"	
 				$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', cssPath)
 				@fullSrnSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'SRNSRX.srn') else _t.src
-				@fullJsonSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'Info.json') else _t.src
-				$.when($.get(@fullSrnSrc),$.getJSON(@fullJsonSrc)).then((data,json) ->
+				# info.json temp. disabled: @fullJsonSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'Info.json') else _t.src
+				# info.json temp. disabled: $.when($.get(@fullSrnSrc),$.getJSON(@fullJsonSrc)).then((data,json) ->
+				$.get(@fullSrnSrc).then((data) ->
 					# mm = json[0]['Length']['mm']
 					# scale = 1 # 0.0436 * mm * mm - 0.7119 * mm + 3.6648 #scale the stone to look always the same
 					
 					createScene.apply(_t)
-					info = json[0]
-					rawData = data[0]
+					# info = json[0]
+					# info.json temp. disabled: rawData = data[0] 
+					rawData = data
 						.replace(/\s/g,"^")
 						.match(/Mesh(.*?)}/)[0]
 						.replace(/[Mesh|{|}]/g,"")
