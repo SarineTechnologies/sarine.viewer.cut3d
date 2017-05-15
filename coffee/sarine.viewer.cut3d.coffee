@@ -46,7 +46,7 @@ class Cut3d extends Viewer
 			"min-height" : 200
 			} 
 		@element
-	full_init : ()->
+	first_init : ()->
 		_t = @		
 		defer = $.Deferred() 
 		#temp support only for round/modifiedround and if webgl not supported
@@ -102,7 +102,7 @@ class Cut3d extends Viewer
 					defer					
 			)
 		defer 
-	first_init : ()->  
+	full_init : ()->  
 		defer = $.Deferred()				
 		defer.resolve(@)
 		defer
