@@ -282,7 +282,7 @@ class Cut3d extends Viewer
 		@element[0].appendChild(renderer.domElement) ;
 		@material = new THREE.MeshBasicMaterial({ 
 			# map: THREE.ImageUtils.loadTexture('http://www.html5canvastutorials.com/demos/assets/crate.jpg'), 
-			color: 0xcccccc, 
+			color: 0xcbe3ff, 
 			# side:THREE.BackSide, 
 			# depthWrite: false, 
 			# depthTest: false  
