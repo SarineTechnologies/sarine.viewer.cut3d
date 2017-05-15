@@ -27,9 +27,12 @@ class Cut3d extends Viewer
 	
 	constructor: (options) -> 
 		super(options)
-		{color,font, infoOnly} = options   
-		color = color || 0xffffff
-		scale = 1
+		{color, font, infoOnly} = options   
+		
+		cut3DViewConf = (window.configuration.experiences.filter((i)-> return i.atom == 'cut3DView'))[0]		
+		color = if cut3DViewConf.color then cut3DViewConf.color.toLowerCase() else 0xcbe3ff		
+		scale = if cut3DViewConf.scale && (!isNaN(parseFloat(cut3DViewConf.scale)) && isFinite(cut3DViewConf.scale)) then parseFloat(cut3DViewConf.scale) else 1
+		
 		cameraWidthHeight = 12000
 		cameraNearFar = 10000
 		shape = options.stoneProperties.shape.toLowerCase()
@@ -68,8 +71,9 @@ class Cut3d extends Viewer
 				@fullSrnSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'SRNSRX.srn') else _t.src
 				@fullJsonSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'Info.json') else _t.src
 				$.when($.get(@fullSrnSrc),$.getJSON(@fullJsonSrc)).then((data,json) ->
-					mm = json[0]['Length']['mm']
-					scale = 1 # 0.0436 * mm * mm - 0.7119 * mm + 3.6648 #scale the stone to look always the same
+					# mm = json[0]['Length']['mm']
+					# scale = 1 # 0.0436 * mm * mm - 0.7119 * mm + 3.6648 #scale the stone to look always the same
+					
 					createScene.apply(_t)
 					info = json[0]
 					rawData = data[0]
@@ -282,7 +286,7 @@ class Cut3d extends Viewer
 		@element[0].appendChild(renderer.domElement) ;
 		@material = new THREE.MeshBasicMaterial({ 
 			# map: THREE.ImageUtils.loadTexture('http://www.html5canvastutorials.com/demos/assets/crate.jpg'), 
-			color: 0xcbe3ff, 
+			color: color
 			# side:THREE.BackSide, 
 			# depthWrite: false, 
 			# depthTest: false  
