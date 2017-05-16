@@ -64,10 +64,11 @@ class Cut3d extends Viewer
 		#end of temp
 		#else
 		# @showLoader(_t)
+		@setCut3dHelperContainer(_t)
 		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.min.js").then( 
 			()->		
-				cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css"	
-				$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', cssPath)
+				#cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css"	
+				#$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', cssPath)
 				@fullSrnSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'SRNSRX.srn') else _t.src
 				# info.json temp. disabled: @fullJsonSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'Info.json') else _t.src
 				# info.json temp. disabled: $.when($.get(@fullSrnSrc),$.getJSON(@fullJsonSrc)).then((data,json) ->
@@ -117,6 +118,11 @@ class Cut3d extends Viewer
 	#	_t.element.append spinner	
 	#hideLoader :()->
 	#	$('.cut3d-spinner').hide()
+
+	# set empty div for some UI porposes, such as to add 360.png icon
+	setCut3dHelperContainer : (_t)->
+		spinner = $('<div class="cut3dHelper"></div>')
+		_t.element.append spinner
 
 	webglDetect : (return_context) ->
 	  if ! !window.WebGLRenderingContext
