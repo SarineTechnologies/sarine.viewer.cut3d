@@ -2,22 +2,7 @@
 module.exports = function(grunt) {
 
     require('load-grunt-tasks')(grunt)
-    
-    function decideBaseViewer()
-    {
-        if(process.env.buildFor == 'deploy')
-        {
-            grunt.log.writeln("base viewer is in node_modules");
-
-            return 'node_modules/sarine.viewer/';
-        }
-        else
-        {
-            grunt.log.writeln("base viewer is locally relative to development environment");
-
-            return '../sarine.viewer/';
-        }
-    }
+    var target = grunt.option('target') || "";
 
     grunt.initConfig({
         config: grunt.file.readJSON("package.json"),
@@ -30,7 +15,7 @@ module.exports = function(grunt) {
                     sourceMap: true,
                 },
                 files: {
-                    'dist/<%= config.name %>.bundle.js' : [decideBaseViewer() + 'coffee/*.coffee', 'coffee/*.coffee'] // concat then compile into single file
+                    'dist/<%= config.name %>.bundle.js' : [target + 'coffee/*.coffee', 'coffee/*.coffee'] // concat then compile into single file
                 }
             }
         },
@@ -46,6 +31,12 @@ module.exports = function(grunt) {
                 src: 'dist/<%= config.name %>.bundle.js',
                 dest: 'dist/<%= config.name %>.bundle.min.js'
             }
+        },
+        copy: {
+            bundle: {
+                dest: target + 'dist/<%= config.name %>.config',
+                src: [target + '<%= config.name %>.config']
+            }
         }
     });
     
@@ -53,5 +44,20 @@ module.exports = function(grunt) {
         'clean:build',
         'coffee',// Compile CoffeeScript files to JavaScript + concat + map
         'uglify',//min + banner + remove comments + map    
+        'copyVersion',
+        'copy:bundle'
     ]);
+    grunt.registerTask('copyVersion' , 'copy version from package.json to sarine.viewer.clarity.config' , function (){
+        var packageFile = grunt.file.readJSON(target + 'package.json');
+        var configFileName = target + packageFile.name + '.config';
+        var copyFile = null;
+        if (grunt.file.exists(configFileName))
+            copyFile = grunt.file.readJSON(configFileName);
+        
+        if (copyFile == null)
+            copyFile = {};
+
+        copyFile.version = packageFile.version;
+        grunt.file.write(configFileName , JSON.stringify(copyFile));
+    });
 };
