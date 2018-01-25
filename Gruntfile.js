@@ -5,6 +5,7 @@ module.exports = function(grunt) {
     var target = grunt.option('target') || "";
 	var config = {};
 	config.dist = decideDist();
+    config.coreFiles = getCoreFiles();
 
     grunt.initConfig({
         config: grunt.file.readJSON("package.json"),
@@ -50,8 +51,9 @@ module.exports = function(grunt) {
         }
     });
     
-    grunt.registerTask('bundle', [ 
+    grunt.registerTask('build', [ 
         'clean:build',
+        'concat:coffeebundle',
         'coffee',// Compile CoffeeScript files to JavaScript + concat + map
         'uglify',//min + banner + remove comments + map    
         'copyVersion',
@@ -90,5 +92,31 @@ module.exports = function(grunt) {
                 root: '../../../dist/content/viewers/atomic/v1/js/'
             }
         }
+    }
+
+    function getCoreFiles()
+    {
+        var core;
+
+        if(process.env.buildFor == 'deploy')
+        {
+            core = 
+            [
+                'node_modules/sarine.viewer/coffee/sarine.viewer.bundle.coffee'
+            ]
+
+            grunt.log.writeln("taking core files from node_modules");
+        }
+        else
+        {
+            core = 
+            [
+                '../../core/sarine.viewer/coffee/sarine.viewer.bundle.coffee'
+            ]
+
+            grunt.log.writeln("taking core files from parent folder");
+        }
+
+        return core;
     }
 };
