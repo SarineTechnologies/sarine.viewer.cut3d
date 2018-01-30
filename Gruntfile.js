@@ -37,28 +37,18 @@ module.exports = function(grunt) {
         },
         copy: {
             bundle: {
-                dest: target + 'dist/<%= config.name %>.config',
+                dest: config.dist.root + '/<%= config.name %>.config',
                 src: [target + '<%= config.name %>.config']
-            },
-            dist_root_files: {
-                files: [{
-                        cwd: 'dist/',
-                        src: '**',
-                        dest: config.dist.root,
-                        expand: true
-                    }]
             }
         }
     });
     
     grunt.registerTask('build', [ 
         'clean:build',
-        'concat:coffeebundle',
         'coffee',// Compile CoffeeScript files to JavaScript + concat + map
         'uglify',//min + banner + remove comments + map    
         'copyVersion',
-        'copy:bundle',
-        'copy:dist_root_files'
+        'copy:bundle'
     ]);
     grunt.registerTask('copyVersion' , 'copy version from package.json to sarine.viewer.clarity.config' , function (){
         var packageFile = grunt.file.readJSON(target + 'package.json');
