@@ -1,38 +1,78 @@
-'use strict'
+'use strict';
 module.exports = function(grunt) {
-
     require('load-grunt-tasks')(grunt)
     var target = grunt.option('target') || "";
-	var config = {};
+    var config = {};
 	config.dist = decideDist();
     config.coreFiles = getCoreFiles();
 
     grunt.initConfig({
-        config: grunt.file.readJSON("package.json"),
+        config: grunt.file.readJSON(target + "package.json"),
         clean: {
-            build: ["dist/"]
+            build: [target + "lib/", target + "dist/", target + "build/"],
+            bundlecoffee: [target + "coffee/*.bundle.coffee"],
+            postbuild: [target + "build/"]
         },
-        coffee: {
-            bundle: {
-                options: {
-                    sourceMap: true,
-                },
-                files: {
-                    'dist/<%= config.name %>.bundle.js' : [target + 'coffee/*.coffee', 'coffee/*.coffee'] // concat then compile into single file
-                }
+        commentsCoffee: {
+            coffee: {
+                src: [target + 'coffee/<%= config.name %>.coffee'],
+                dest: target + 'coffee/<%= config.name %>.coffee',
+            },
+            coffeeBundle: {
+                src: [target + 'coffee/<%= config.name %>.bundle.coffee'],
+                dest: target + 'coffee/<%= config.name %>.bundle.coffee',
+            },
+        },
+        concat: {
+            coffee: {
+                src: [target + 'coffee/<%= config.name %>.coffee'],
+                dest: target + 'coffee/<%= config.name %>.coffee',
+            },
+            coffeebundle: {
+                src: [config.coreFiles , target + 'coffee/<%= config.name %>.bundle.coffee'],
+                dest: target + 'coffee/<%= config.name %>.bundle.coffee',
             }
         },
         uglify: {
             options: {
+                preserveComments: 'some',
                 banner: '/*\n<%= config.name %> - v<%= config.version %> - ' +
-                        ' <%= grunt.template.today("dddd, mmmm dS, yyyy, h:MM:ss TT") %> ' + '\n ' + grunt.file.read("copyright.txt") + '\n*/',
-                preserveComments: false,
-                sourceMap : true,
-                sourceMapIn: "dist/<%= config.name %>.bundle.js.map"
+                        ' <%= grunt.template.today("dddd, mmmm dS, yyyy, h:MM:ss TT") %> ' + '\n ' + grunt.file.read("copyright.txt") + '\n*/\n'
             },
             build: {
-                src: 'dist/<%= config.name %>.bundle.js',
-                dest: 'dist/<%= config.name %>.bundle.min.js'
+                src: config.dist.root + '/<%= config.name %>.js',
+                dest: config.dist.root + '/<%= config.name %>.min.js'
+            },
+            bundle: {
+                src: config.dist.root + '/<%= config.name %>.bundle.js',
+                dest: config.dist.root + '/<%= config.name %>.bundle.min.js'
+            }
+        },
+        coffeescript_concat: {
+            bundle: {
+                src: [target + 'lib/add/*.coffee', target + 'coffee/*.coffee', target + '!coffee/*.bundle.coffee'],
+                dest: target + 'coffee/<%= config.name %>.bundle.coffee'
+
+            }
+        },
+        coffee: {
+            build: {
+                option: {
+                    join: true,
+                    extDot: 'last'
+                },
+                dest: config.dist.root + '/<%= config.name %>.js',
+                src: [target + 'coffee/<%= config.name %>.coffee']
+
+            },
+            bundle: {
+                option: {
+                    join: true,
+                    extDot: 'last'
+                },
+                dest: config.dist.root + '/<%= config.name %>.bundle.js',
+                src: [target + 'coffee/<%= config.name %>.bundle.coffee']
+
             }
         },
         copy: {
@@ -41,16 +81,23 @@ module.exports = function(grunt) {
                 src: [target + '<%= config.name %>.config']
             }
         }
-    });
-    
-    grunt.registerTask('build', [ 
+    })
+    grunt.registerTask('build', [
         'clean:build',
-        'coffee',// Compile CoffeeScript files to JavaScript + concat + map
-        'uglify',//min + banner + remove comments + map    
+        'clean:bundlecoffee',
+        'coffeescript_concat',
+        'concat:coffeebundle',
+        'coffee:bundle',
+        'concat:coffee',
+        'coffee:build',
+        'uglify',
+        'clean:postbuild',
         'copyVersion',
-        'copy:bundle'
+        'copy:bundle',
+        'clean:bundlecoffee' //remove bundle.coffe file - not necessary
     ]);
-    grunt.registerTask('copyVersion' , 'copy version from package.json to sarine.viewer.clarity.config' , function (){
+
+       grunt.registerTask('copyVersion' , 'copy version from package.json to sarine.viewer.clarity.config' , function (){
         var packageFile = grunt.file.readJSON(target + 'package.json');
         var configFileName = target + packageFile.name + '.config';
         var copyFile = null;
@@ -63,6 +110,7 @@ module.exports = function(grunt) {
         copyFile.version = packageFile.version;
         grunt.file.write(configFileName , JSON.stringify(copyFile));
     });
+
 
     function decideDist()
     {
@@ -92,7 +140,7 @@ module.exports = function(grunt) {
         {
             core = 
             [
-                'node_modules/sarine.viewer/coffee/sarine.viewer.bundle.coffee'
+                'node_modules/sarine.viewer/coffee/sarine.viewer.coffee'
             ]
 
             grunt.log.writeln("taking core files from node_modules");
@@ -101,7 +149,7 @@ module.exports = function(grunt) {
         {
             core = 
             [
-                '../../core/sarine.viewer/coffee/sarine.viewer.bundle.coffee'
+                '../../core/sarine.viewer/coffee/sarine.viewer.coffee'
             ]
 
             grunt.log.writeln("taking core files from parent folder");
@@ -109,4 +157,5 @@ module.exports = function(grunt) {
 
         return core;
     }
+
 };
