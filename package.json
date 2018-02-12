@@ -13,7 +13,7 @@
     "load-grunt-tasks": "^3.1.0",
     "grunt-contrib-copy": "^0.7.0"
   },
-  "version": "0.18.3",
+  "version": "0.18.4",
     "engines": {
     "node": "4.5.0"
   }
