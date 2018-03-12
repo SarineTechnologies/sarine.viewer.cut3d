@@ -280,12 +280,12 @@ class Cut3d extends Viewer
 		sceneInfo.add(cameraInfo)
 
 		# create event for top, side and bottom on the canvas element
-		$(renderer.domElement).on("top",()-> mesh.rotation.x = Math.PI)
-		$(renderer.domElement).on("side",()-> mesh.rotation.x = Math.PI/2)
-		$(renderer.domElement).on("bottom",()-> mesh.rotation.x = 0)
+		$('.viewer').on("top",()-> mesh.rotation.x = Math.PI)
+		$('.viewer').on("side",()-> mesh.rotation.x = Math.PI/2)
+		$('.viewer').on("bottom",()-> mesh.rotation.x = 0)
 
 		# create event for toggle transparent on the canvas element
-		$(renderer.domElement).on("transparent",()-> 
+		$('.viewer').on("transparent",()-> 
 			mesh.material.opacity = if mesh.material.opacity == 1 then 0 else 1
 			mesh.material.transparent = !mesh.material.transparent
 		)
