@@ -24,12 +24,15 @@ class Cut3d extends Viewer
 	shape = undefined;
 	cameraWidthHeight = undefined;
 	cameraNearFar = undefined;
-	
+
 	constructor: (options) -> 
 		super(options)
-		{color,font, infoOnly} = options   
-		color = color || 0xffffff
-		scale = 1
+		{color, font, infoOnly} = options   
+		
+		cut3DViewConf = (window.configuration.experiences.filter((i)-> return i.atom == 'cut3DView'))[0]		
+		color = if cut3DViewConf.color then cut3DViewConf.color.toLowerCase() else 0xcbe3ff		
+		scale = if cut3DViewConf.scale && (!isNaN(parseFloat(cut3DViewConf.scale)) && isFinite(cut3DViewConf.scale)) then parseFloat(cut3DViewConf.scale) else 1
+		
 		cameraWidthHeight = 12000
 		cameraNearFar = 10000
 		shape = options.stoneProperties.shape.toLowerCase()
@@ -46,7 +49,7 @@ class Cut3d extends Viewer
 			"min-height" : 200
 			} 
 		@element
-	full_init : ()->
+	first_init : ()->
 		_t = @		
 		defer = $.Deferred() 
 		#temp support only for round/modifiedround and if webgl not supported
@@ -60,20 +63,23 @@ class Cut3d extends Viewer
 		#	defer
 		#end of temp
 		#else
-		@showLoader(_t)
-		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.bundle.js").then( 
+		# @showLoader(_t)
+		@setCut3dHelperContainer(_t)
+		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.min.js?" + cacheAssetsVersion).then( 
 			()->		
-				cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css"	
-				$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', cssPath)
+				#cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css"	
+				#$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', cssPath)
 				@fullSrnSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'SRNSRX.srn') else _t.src
-				@fullJsonSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'Info.json') else _t.src
-				$.when($.get(@fullSrnSrc),$.getJSON(@fullJsonSrc)).then((data,json) ->
-					mm = json[0]['Length']['mm']
-					console.log json[0]
-					scale = 1 # 0.0436 * mm * mm - 0.7119 * mm + 3.6648 #scale the stone to look always the same
+				# info.json temp. disabled: @fullJsonSrc = if _t.src.indexOf('##FILE_NAME##') != -1 then _t.src.replace('##FILE_NAME##', 'Info.json') else _t.src
+				# info.json temp. disabled: $.when($.get(@fullSrnSrc),$.getJSON(@fullJsonSrc)).then((data,json) ->
+				$.get(@fullSrnSrc).then((data) ->
+					# mm = json[0]['Length']['mm']
+					# scale = 1 # 0.0436 * mm * mm - 0.7119 * mm + 3.6648 #scale the stone to look always the same
+					
 					createScene.apply(_t)
-					info = json[0]
-					rawData = data[0]
+					# info = json[0]
+					# info.json temp. disabled: rawData = data[0] 
+					rawData = data
 						.replace(/\s/g,"^")
 						.match(/Mesh(.*?)}/)[0]
 						.replace(/[Mesh|{|}]/g,"")
@@ -85,9 +91,9 @@ class Cut3d extends Viewer
 						polygons :rawData[parseInt(rawData[0]) + 2 .. rawData.length]
 							.map((str)-> str.replace(/(\d+;)/, '').replace(/(;;|;,)/,"").split(","))
 							}]);
-					#info = drawInfo.apply(_t);
+					# info = drawInfo.apply(_t);
 		
-					_t.hideLoader()	
+					# _t.hideLoader()	
 					if(!infoOnly)
 						addMouseHandler.apply(_t);
 					defer.resolve(_t) 
@@ -97,21 +103,26 @@ class Cut3d extends Viewer
 						canvas = $("<canvas >")
 						canvas.attr({"class": "no_stone" ,"width": img.width, "height": img.height}) 
 						canvas[0].getContext("2d").drawImage(img, 0, 0, img.width, img.height)
-						_t.hideLoader()
+						# _t.hideLoader()
 						_t.element.append(canvas)
 						defer.resolve(_t) 	
 					defer					
 			)
 		defer 
-	first_init : ()->  
+	full_init : ()->  
 		defer = $.Deferred()				
 		defer.resolve(@)
 		defer
-	showLoader : (_t)->
-		spinner = $('<div class="cut3d-spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>')
-		_t.element.append spinner	
-	hideLoader :()->
-		$('.cut3d-spinner').hide()
+	# showLoader : (_t)->
+	#	spinner = $('<div class="cut3d-spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div>')
+	#	_t.element.append spinner	
+	#hideLoader :()->
+	#	$('.cut3d-spinner').hide()
+
+	# set empty div for some UI porposes, such as to add 360.png icon
+	setCut3dHelperContainer : (_t)->
+		spinner = $('<div class="cut3dHelper"></div>')
+		_t.element.append spinner
 
 	webglDetect : (return_context) ->
 	  if ! !window.WebGLRenderingContext
@@ -148,8 +159,9 @@ class Cut3d extends Viewer
 	stop : () -> return		
 	loadScript = (url)->
 		onload = ()->
-			THREE = GetTHREE(); 			 
+			THREE = window.THREE # GetTHREE(); 			 
 			defer.resolve(_t);
+						
 		_t = @
 		defer = $.Deferred()
 		if($("[src='" + url + "']")[0])
@@ -247,6 +259,7 @@ class Cut3d extends Viewer
 		scene.add(rotation(edges))
 		edges.position.setZ(100)
 		edges.updateMatrix()
+		# console.log "data.mesh", data, mesh
 		mesh
 	rotation = (obj) ->		
 		obj.rotation.x = Math.PI / 2
@@ -281,7 +294,7 @@ class Cut3d extends Viewer
 		@element[0].appendChild(renderer.domElement) ;
 		@material = new THREE.MeshBasicMaterial({ 
 			# map: THREE.ImageUtils.loadTexture('http://www.html5canvastutorials.com/demos/assets/crate.jpg'), 
-			color: 0xcccccc, 
+			color: color
 			# side:THREE.BackSide, 
 			# depthWrite: false, 
 			# depthTest: false  
