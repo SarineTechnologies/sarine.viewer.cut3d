@@ -65,7 +65,7 @@ class Cut3d extends Viewer
 		#else
 		# @showLoader(_t)
 		@setCut3dHelperContainer(_t)
-		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.min.js?" + cacheAssetsVersion).then( 
+		loadScript(@viewersBaseUrl + "atomic/" + @version + "/assets/three.min.js?v=" + cacheAssetsVersion).then( 
 			()->		
 				#cssPath = _t.viewersBaseUrl + "atomic/" + _t.version + "/assets/cut3d.css"	
 				#$('<link>').appendTo('head').attr({type : 'text/css', rel : 'stylesheet'}).attr('href', cssPath)

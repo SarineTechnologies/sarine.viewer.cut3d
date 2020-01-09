@@ -14,7 +14,7 @@
     "grunt-contrib-copy": "^0.7.0",
     "grunt-contrib-watch": "^0.6.1"
   },
-  "version": "0.18.8",
+  "version": "0.18.9",
   "scripts": {
     "build": "grunt build",
     "dev": "grunt dev"
